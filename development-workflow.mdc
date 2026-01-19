@@ -1,0 +1,407 @@
+---
+alwaysApply: true
+---
+
+# Development Workflow - Sistemsel Kod Yazma Süreci
+
+**Bu dosya her kod yazma işleminde otomatik olarak kontrol edilir.**
+
+**Roadmap Referansı:** `_bmad-output/planning-artifacts/roadmap.mdc`
+
+---
+
+## 🔄 Döngüsel Süreç (Her Kod Yazma İşleminde)
+
+### PRE-CODE: Kod Yazmadan Önce Kontrol
+
+**1. Öncelik Kontrolü**
+- [ ] Roadmap'teki öncelik sırasını kontrol et (P0 → P1 → P2 → P3)
+- [ ] Şu anki öncelik: **Test Infrastructure** (P3.1) veya **UI Refactor** (P3.3)
+- [ ] Yeni özellik ekliyorsan, roadmap'teki öncelik sırasına uy mu?
+
+**2. Epic Durumu Kontrolü**
+- [ ] Hangi epic'e ait?
+- [ ] Epic durumu nedir? (Tamamlandı mı? In-progress mi?)
+- [ ] Story durumu nedir? (Acceptance criteria'lar tamamlandı mı?)
+
+**3. Süreç Döngüsü Kontrolü**
+- [ ] Hangi aşamadayız? (Planlama → Geliştirme → Kalite Kontrolü → Commit)
+- [ ] Planlama yapıldı mı? (Epic/Story seçimi, Acceptance criteria review)
+- [ ] Technical design hazır mı?
+
+**4. Rules Kontrolü**
+- [ ] `roadmaprules.mdc` - Öncelikler ve süreç döngüsü
+- [ ] `reactrules.mdc` - React performans kuralları
+- [ ] `mvprules.mdc` - MVP kuralları ve UI consistency
+
+**5. BMad Context Kontrolü (Kategorize Edilmiş)**
+- [ ] `bmad-context-checker.mdc` - Kategori bazlı kontrol yapıldı mı?
+- [ ] Planning artifacts kontrol edildi mi? (roadmap, prd, epics, architecture)
+- [ ] Implementation artifacts kontrol edildi mi? (story files, code reviews)
+- [ ] Core documentation kontrol edildi mi? (API contracts, data models, components)
+- [ ] İlgili workflow çalıştırıldı mı? (`_bmad/bmm/workflows/` veya `_bmad/core/workflows/`)
+
+**6. Referans Kontrolü**
+- [ ] Design referansları var mı? (`stitch_main_pos_terminal_screen/`)
+- [ ] UI Refactor sırasında mıyız? (Design system, Tailwind CSS, Material Symbols)
+- [ ] API documentation var mı? (Tauri commands)
+
+---
+
+### DURING-CODE: Kod Yazarken Kontrol
+
+**1. Code Quality Rules**
+- [ ] React Hook Compliance (`useCallback`, `useEffect` dependencies)
+- [ ] Type Safety (no `any`, proper types)
+- [ ] Error Handling (try-catch, Result types)
+- [ ] Input Validation (sanitization, length checks)
+- [ ] **AI Optimizasyonu:** Dosya boyutu < 250 satır (ESLint: `max-lines`)
+- [ ] **AI Optimizasyonu:** Dosya başına tek React component (ESLint: `react/no-multi-comp`)
+- [ ] **AI Optimizasyonu:** Fonksiyon boyutu < 50 satır (ESLint: `max-lines-per-function`)
+
+**2. Performance Rules (Vercel Best Practices)**
+- [ ] Waterfall'ları önle (Promise.all kullan) - **KRİTİK**
+- [ ] Bundle size kontrolü (route-based code splitting, lazy loading) - **KRİTİK**
+- [ ] N+1 Query problemi var mı? (Batch fetching kullan)
+- [ ] Re-render optimizasyonu (`useMemo`, `useCallback`, `React.memo` - sadece gerektiğinde)
+- [ ] Bundle analyzer ile ölçüm yapıldı mı? (tahmin etme, ölç)
+
+**3. Security Rules**
+- [ ] Backend role validation var mı? (Owner/Cashier checks)
+- [ ] Input sanitization yapıldı mı?
+- [ ] Rate limiting gerekli mi?
+- [ ] Session security (sessionStorage kullan)
+
+**4. UI/UX Rules (UI Refactor sırasında)**
+- [ ] Tailwind CSS utility classes kullan
+- [ ] Design token'ları kullan (`src/design-tokens.ts`)
+- [ ] Material Symbols font kullan
+- [ ] Stitch design'larına uy mu?
+- [ ] Accessibility (ARIA labels, keyboard navigation)
+- [ ] Route-based code splitting (React.lazy + Suspense) - **Vercel Best Practice**
+- [ ] Bundle size < 500KB (bundle analyzer ile kontrol)
+
+**5. Pattern'ler ve Best Practices**
+- [ ] Mevcut pattern'leri kullan (rate limiting, role validation, logger)
+- [ ] Constants kullan (magic numbers yok)
+- [ ] i18n keys kullan (hardcoded strings yok)
+- [ ] Logger kullan (`console.log` yok)
+
+---
+
+### POST-CODE: Kod Yazdıktan Sonra Kontrol
+
+**1. Quality Gates (Her Commit Öncesi)**
+```bash
+# Otomatik çalıştır:
+npm run mvp:check  # typecheck + cargo check
+./scripts/run-cleanup-gates.sh  # Full quality gates
+```
+
+- [ ] TypeScript type checking (`npm run typecheck`)
+- [ ] Rust compilation check (`cargo check`)
+- [ ] Smoke test (`npm run tauri dev` - 15 saniye, panic check)
+- [ ] ESLint kontrolü (`npm run lint`) - AI optimizasyon kuralları dahil
+
+**2. Code Review Checklist**
+- [ ] Self code review yapıldı mı?
+- [ ] Acceptance criteria'lar karşılandı mı?
+- [ ] Security review yapıldı mı? (role validation, input sanitization)
+- [ ] Performance review yapıldı mı? (N+1 queries, waterfall'lar)
+
+**3. Testing**
+- [ ] Local testing yapıldı mı?
+- [ ] Manual testing yapıldı mı?
+- [ ] Test coverage yeterli mi? (hedef: %60+)
+
+**4. Documentation**
+- [ ] Code comments eklendi mi? (JSDoc)
+- [ ] API documentation güncellendi mi?
+- [ ] Component documentation güncellendi mi?
+- [ ] Roadmap güncellendi mi? (tamamlanan işler işaretlendi mi?)
+**5. Git & Commit (Otomatik)**
+
+**Güvenilir Değişiklik Kriterleri:**
+- ✅ Quality gates geçti (`npm run dev:gates`)
+- ✅ Type checking başarılı (`npm run typecheck`)
+- ✅ Rust compilation başarılı (`cargo check`)
+- ✅ Smoke test başarılı (`npm run tauri dev` - 15 saniye, panic yok)
+- ✅ Manuel test yapıldı (opsiyonel, kritik değişiklikler için)
+
+**Otomatik Commit Mekanizması:**
+
+Her güvenilir değişiklik sonrasında otomatik commit yapılmalı:
+
+```bash
+# 1. Quality gates çalıştır
+npm run dev:gates
+
+# 2. Eğer tüm gate'ler geçtiyse, commit yap
+git add .
+git commit -m "feat|fix|refactor|docs|style|test|chore(scope): description
+
+- Detay 1
+- Detay 2
+
+Related: Epic-X, Story-X.Y"
+```
+
+**Conventional Commits Formatı:**
+- `feat:` - Yeni özellik
+- `fix:` - Bug fix
+- `refactor:` - Refactoring (kod iyileştirme)
+- `docs:` - Dokümantasyon
+- `style:` - Code style (formatting, whitespace)
+- `test:` - Test ekleme/düzenleme
+- `chore:` - Genel bakım (dependencies, config)
+
+**Commit Scope Örnekleri:**
+- `feat(auth):` - Authentication özelliği
+- `fix(pos):` - POS bug fix
+- `refactor(stock):` - Stock refactoring
+- `docs(api):` - API dokümantasyonu
+- `test(auth):` - Authentication testleri
+
+**Commit Message Örnekleri:**
+```bash
+# Yeni özellik
+git commit -m "feat(test): add Vitest test framework setup
+
+- Install Vitest + React Testing Library
+- Configure vitest.config.ts
+- Add test directory structure
+
+Related: P3.1"
+
+# Bug fix
+git commit -m "fix(auth): fix race condition in session check
+
+- Use functional state updates
+- Add mounted flag to prevent stale closures
+- Fix useEffect dependency array
+
+Related: C5"
+
+# Refactoring
+git commit -m "refactor(pos): extract magic numbers to constants
+
+- Add ANIMATION_DURATION constant
+- Add SEARCH_DEBOUNCE_DELAY constant
+- Replace hardcoded numbers in POS.tsx
+
+Related: P2"
+```
+
+**Otomatik Commit Kuralları:**
+1. ✅ Quality gates geçtiyse → Commit yap
+2. ✅ Küçük, atomik değişiklikler → Her değişiklik için commit
+3. ✅ Büyük değişiklikler → Feature branch'te commit, main'e merge
+4. ✅ Related epic/story referansı ekle
+5. ✅ Breaking changes varsa → `BREAKING CHANGE:` notu ekle
+
+---
+
+## 🎯 Öncelik Bazlı Kontrol Listesi
+
+### P0 (CRITICAL) - Güvenlik
+**Kod yazarken kontrol et:**
+- [ ] Rate limiting gerekli mi? (login, sensitive operations)
+- [ ] Timing attack koruması var mı? (bcrypt::verify)
+- [ ] Input sanitization yapıldı mı?
+- [ ] Backend validation var mı? (frontend-only validation yeterli değil)
+- [ ] Session security (sessionStorage, TTL)
+
+### P1 (HIGH) - Code Quality
+**Kod yazarken kontrol et:**
+- [ ] Backend role validation var mı? (Owner/Cashier checks)
+- [ ] React Hook Compliance (`useCallback`, `useEffect` dependencies)
+- [ ] setTimeout cleanup var mı? (`clearTimeout`)
+- [ ] N+1 Query problemi var mı? (Batch fetching)
+- [ ] Database indexes var mı? (Performance)
+
+### P2 (MEDIUM) - Code Quality Improvements
+**Kod yazarken kontrol et:**
+- [ ] Logger kullanıldı mı? (`console.log` yok)
+- [ ] Type safety (no `any`, proper types)
+- [ ] Constants kullanıldı mı? (magic numbers yok)
+- [ ] i18n keys kullanıldı mı? (hardcoded strings yok)
+
+### P3 (HIGH) - Üretim Hazırlığı
+**Kod yazarken kontrol et:**
+- [ ] Test yazıldı mı? (Test Infrastructure aktifse)
+- [ ] Documentation güncellendi mi?
+- [ ] UI Refactor kurallarına uy mu? (UI Refactor sırasında)
+- [ ] Performance optimization yapıldı mı?
+
+---
+
+## 🔍 Epic Bazlı Kontrol Listesi
+
+### Epic 1-6: Tamamlandı ✅
+**Yeni özellik eklerken:**
+- [ ] Mevcut epic'lere uyumlu mu?
+- [ ] Breaking change var mı?
+- [ ] Backward compatibility korundu mu?
+
+### Epic 7: In-Progress ⚠️
+**Kod yazarken:**
+- [ ] Story 7.5 (Hata Kurtarma) ile ilgili mi?
+- [ ] Structured error logging gerekli mi?
+- [ ] Error recovery UI iyileştirmesi gerekli mi?
+
+### Epic 8: Tamamlandı ✅
+**Kod yazarken:**
+- [ ] i18n keys kullanıldı mı?
+- [ ] Türkçe mesajlar doğru mu?
+
+---
+
+## 🎨 UI Refactor Kontrol Listesi (P3.3 Aktifse)
+
+### Phase 1: Design System Foundation
+**Kod yazarken:**
+- [ ] Tailwind CSS kuruldu mu?
+- [ ] Material Symbols font eklendi mi?
+- [ ] Design tokens oluşturuldu mu? (`src/design-tokens.ts`)
+- [ ] Color palette extraction yapıldı mı?
+
+### Phase 2-6: Component & Screen Refactor
+**Kod yazarken:**
+- [ ] Stitch design'larına uy mu? (`stitch_main_pos_terminal_screen/`)
+- [ ] Tailwind utility classes kullanıldı mı?
+- [ ] Design token'ları kullanıldı mı?
+- [ ] Component library'den component'ler kullanıldı mı?
+- [ ] Custom CSS yazıldı mı? (mümkünse Tailwind kullan)
+
+---
+
+## 📋 Otomatik Kontrol Script'leri
+
+### Pre-Commit Hook (Önerilen)
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+# Quality gates
+npm run mvp:check
+if [ $? -ne 0 ]; then
+  echo "❌ Quality gates failed. Commit aborted."
+  exit 1
+fi
+```
+
+### Development Checklist Script
+```bash
+#!/bin/bash
+# scripts/dev-checklist.sh
+
+echo "🔍 Development Checklist"
+echo "1. Öncelik kontrolü..."
+echo "2. Epic durumu kontrolü..."
+echo "3. Rules kontrolü..."
+echo "4. Quality gates..."
+```
+
+---
+
+## 🚀 Hızlı Referans
+
+### "Başla" Komutu (Otomatik Başlangıç)
+
+**Kullanıcı "başla" dediğinde sistem otomatik olarak:**
+
+1. ✅ Roadmap'i kontrol et (`roadmap.mdc`) - Şu anki önceliği belirle
+2. ✅ Epic durumunu kontrol et - Hangi epic'ler tamamlandı?
+3. ✅ İlgili senaryoyu seç (Test Infrastructure, UI Refactor, Documentation, Performance)
+4. ✅ İlgili dosyaları kontrol et (planning artifacts, implementation artifacts)
+5. ✅ İlgili workflow'ları belirle
+6. ✅ İlk adımları göster
+
+**Referans:** `start-guide.mdc` - Otomatik başlangıç senaryoları ve ilk adımlar
+
+---
+
+### "Devam Et" Komutu (Otomatik Devam)
+
+**Kullanıcı "devam et" dediğinde sistem otomatik olarak:**
+
+1. ✅ Son yapılan işi kontrol et (roadmap, epic, story)
+2. ✅ Epic durumunu kontrol et (tamamlandı mı? in-progress mi?)
+3. ✅ Story durumunu kontrol et (acceptance criteria tamamlandı mı?)
+4. ✅ Workflow durumunu kontrol et (yarıda kaldı mı?)
+5. ✅ Bir sonraki adımı belirle (epic, story, workflow)
+6. ✅ İlgili dosyaları kontrol et (story file, code review, planning artifacts)
+7. ✅ İlgili workflow'u devam ettir veya başlat
+
+**Referans:** `start-guide.mdc` - "Devam Et" komutu senaryoları ve devam adımları
+
+**Senaryolar:**
+- Epic in-progress → Epic'e devam et
+- Story in-progress → Story'ye devam et
+- Workflow yarıda kaldı → Workflow'u `--resume` ile devam ettir
+- İş tamamlandı → Bir sonraki öncelikli işe geç
+
+---
+
+**Kod yazmadan önce:**
+1. Development checklist çalıştır: `npm run dev:checklist`
+2. Roadmap'i kontrol et: `_bmad-output/planning-artifacts/roadmap.mdc` ⭐ ZORUNLU
+3. BMad context kontrolü yap: `bmad-context-checker.mdc` - Kategori bazlı
+4. Öncelik sırasını kontrol et: P0 → P1 → P2 → P3
+5. Epic durumunu kontrol et: Tamamlandı mı? In-progress mi?
+6. İlgili workflow'u çalıştır (gerekirse): `_bmad/bmm/workflows/` veya `_bmad/core/workflows/`
+7. Süreç döngüsünü takip et: `development-workflow.mdc`
+8. Quality gate'leri çalıştır: `npm run dev:gates`
+9. Roadmap'i güncelle
+
+**BMad Context Kontrolü (Kategorize Edilmiş):**
+- **Feature Ekleme:** Planning artifacts (prd, epics, architecture)
+- **UI Değişikliği:** UI refresh plan, UX design spec
+- **Backend Değişikliği:** API contracts, data models
+- **Frontend Değişikliği:** Component inventory
+- **Story Implementation:** Story file, code review
+
+**Rules Kontrolü:**
+- `roadmaprules.mdc` - Öncelikler ve süreç döngüsü
+- `reactrules.mdc` - React performans kuralları (Vercel Best Practices)
+- `mvprules.mdc` - MVP kuralları ve UI consistency
+
+**Kod yazarken:**
+1. Code quality rules'a uy
+2. Performance rules'a uy
+3. Security rules'a uy
+4. UI/UX rules'a uy (UI Refactor sırasında)
+5. Pattern'leri kullan
+
+**Kod yazdıktan sonra:**
+1. Quality gates çalıştır (`npm run dev:gates`)
+2. Self code review yap
+3. Testing yap
+4. Documentation güncelle
+5. Roadmap güncelle
+6. **Otomatik Commit:** Güvenilir değişiklikler için commit yap
+   ```bash
+   # Quality gates geçtiyse otomatik commit
+   npm run dev:gates && git add . && git commit -m "feat|fix|refactor(scope): description"
+   ```
+
+---
+
+## 🔄 Sürekli İyileştirme
+
+**Her kod yazma işleminden sonra:**
+1. **Öğrenme:** Ne çalıştı? Ne çalışmadı?
+2. **Dokümantasyon:** Öğrenilen dersler → dokümantasyon
+3. **Otomasyon:** Tekrarlayan işler → script'ler
+4. **Standartlaştırma:** Pattern'ler → template'ler
+
+**Roadmap güncellemesi:**
+- Tamamlanan işleri işaretle
+- Yeni sorunları ekle
+- Öncelikleri güncelle
+- Süreç iyileştirmelerini ekle
+
+---
+
+**Son Güncelleme:** 2026-01-18  
+**Versiyon:** 1.0.0

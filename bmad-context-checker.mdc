@@ -1,0 +1,336 @@
+---
+alwaysApply: true
+---
+
+# BMad Context Checker - Kategorize Edilmiş Kontrol Sistemi
+
+**Bu dosya her kod yazma işleminde otomatik olarak kontrol edilir.**
+
+**Amaç:** `_bmad-output` ve `_bmad` klasörlerindeki dosyaları kategorize ederek, gerektiğinde kontrol etmek ve gerekli workflow'ları çalıştırmak.
+
+---
+
+## 📂 Kategorize Edilmiş Dosya Yapısı
+
+### 1. Planning Artifacts (Planlama Dokümanları)
+**Klasör:** `_bmad-output/planning-artifacts/`
+
+**Dosyalar:**
+- `roadmap.mdc` ⭐ **HER ZAMAN** - Öncelikler ve süreç döngüsü
+- `prd.md` - Product Requirements Document
+- `epics.md` - Epic breakdown ve story listesi
+- `architecture.md` - Mimari kararlar ve tasarım
+- `ux-design-specification.md` - UX tasarım spesifikasyonu
+- `ui-refresh-plan-incremental.md` - UI refactor planı
+- `codebase-audit-report.md` - Audit bulguları ve sorunlar
+- `implementation-readiness-report-*.md` - Implementation hazırlık raporu
+- `bmm-workflow-status.yaml` - Workflow durum takibi
+
+**Ne Zaman Kontrol Edilir:**
+- ✅ **Her kod yazma işleminde:** `roadmap.mdc` (öncelikler, epic durumu)
+- ✅ **Yeni özellik eklerken:** `prd.md`, `epics.md` (requirements, acceptance criteria)
+- ✅ **Mimari karar verirken:** `architecture.md` (patterns, decisions)
+- ✅ **UI değişikliği yaparken:** `ux-design-specification.md`, `ui-refresh-plan-incremental.md`
+- ⚠️ **Periyodik:** `codebase-audit-report.md` (audit sonrası)
+
+---
+
+### 2. Implementation Artifacts (Implementasyon Dokümanları)
+**Klasör:** `_bmad-output/implementation-artifacts/`
+
+**Kategoriler:**
+- **Story Files:** `{epic}-{story}-*.md` (story implementation details)
+- **Code Reviews:** `*-CODE-REVIEW.md` (code review bulguları)
+- **Retrospectives:** `epic-*-retro-*.md`, `all-epics-retrospective-*.md`
+- **Hardening Reports:** `hardening-summary-*.md`, `brownfield-hardening-*.md`
+- **Verification Reports:** `*-VERIFICATION.md`
+
+**Ne Zaman Kontrol Edilir:**
+- ✅ **Story implementasyonu yaparken:** İlgili story file (`{epic}-{story}.md`)
+- ✅ **Code review yaparken:** İlgili `*-CODE-REVIEW.md` dosyası
+- ✅ **Epic tamamlandığında:** Epic retrospective dosyası
+- ⚠️ **Periyodik:** Hardening reports (security, performance issues)
+
+---
+
+### 3. Core Documentation (Temel Dokümantasyon)
+**Klasör:** `_bmad-output/`
+
+**Dosyalar:**
+- `index.md` - Documentation index ve navigation
+- `project-overview.md` - Proje özeti ve quick reference
+- `architecture.md` - Mimari dokümantasyon
+- `development-guide.md` - Development setup ve guide
+- `data-models.md` - Database schema ve models
+- `api-contracts.md` - Tauri command interface
+- `component-inventory.md` - React component listesi
+- `source-tree-analysis.md` - Directory structure
+- `project-context.md` - Project context ve constraints
+
+**Ne Zaman Kontrol Edilir:**
+- ✅ **Backend değişikliği yaparken:** `api-contracts.md`, `data-models.md`
+- ✅ **Frontend değişikliği yaparken:** `component-inventory.md`
+- ✅ **Yeni feature eklerken:** `architecture.md`, `development-guide.md`
+- ⚠️ **İlk kez çalışırken:** `index.md`, `project-overview.md` (overview için)
+
+---
+
+### 4. BMad Core Workflows (Temel Workflow'lar)
+**Klasör:** `_bmad/core/workflows/`
+
+**Workflow'lar:**
+- `party-mode/` - Multi-agent conversation orchestration
+- `brainstorming/` - Brainstorming sessions
+- `advanced-elicitation/` - Requirements elicitation
+
+**Ne Zaman Kontrol Edilir:**
+- ✅ **Party mode başlatırken:** `party-mode/workflow.md`
+- ✅ **Brainstorming yaparken:** `brainstorming/workflow.md`
+- ⚠️ **İhtiyaç duyulduğunda:** Diğer workflow'lar
+
+---
+
+### 5. BMad BMM Workflows (İş Yönetimi Workflow'ları)
+**Klasör:** `_bmad/bmm/workflows/`
+
+**Kategoriler:**
+
+**Analysis (Analiz):**
+- `research/` - Market, domain, technical research
+- `create-product-brief/` - Product brief oluşturma
+
+**Planning (Planlama):**
+- `prd/` - Product Requirements Document
+- `create-ux-design/` - UX design oluşturma
+- `create-epics-and-stories/` - Epic ve story oluşturma
+- `create-architecture/` - Architecture oluşturma
+
+**Solutioning (Çözümleme):**
+- `check-implementation-readiness/` - Implementation hazırlık kontrolü
+
+**Implementation (Implementasyon):**
+- `create-story/` - Story oluşturma
+- `dev-story/` - Story development
+- `code-review/` - Code review
+- `correct-course/` - Course correction
+- `retrospective/` - Epic retrospective
+- `sprint-planning/` - Sprint planning
+- `sprint-status/` - Sprint status
+
+**Documentation:**
+- `document-project/` - Project documentation
+
+**Test Architecture:**
+- `testarch/*/` - Test framework, ATDD, CI, vb.
+
+**Ne Zaman Kontrol Edilir:**
+- ✅ **Yeni story oluştururken:** `create-story/workflow.md`
+- ✅ **Story implementasyonu yaparken:** `dev-story/workflow.md`
+- ✅ **Code review yaparken:** `code-review/workflow.md`
+- ✅ **Epic tamamlandığında:** `retrospective/workflow.md`
+- ✅ **Sprint planning yaparken:** `sprint-planning/workflow.md`
+- ⚠️ **İhtiyaç duyulduğunda:** Diğer workflow'lar
+
+---
+
+### 6. BMad Agents (Agent'lar)
+**Klasör:** `_bmad/core/agents/`, `_bmad/bmm/agents/`
+
+**Agent'lar:**
+- `bmad-master.md` - Master agent (orchestration)
+- `analyst.md` - Business analyst
+- `architect.md` - System architect
+- `dev.md` - Developer agent
+- `pm.md` - Product manager
+- `sm.md` - Scrum master
+- `tea.md` - Test architect
+- `tech-writer.md` - Technical writer
+- `ux-designer.md` - UX designer
+
+**Ne Zaman Kontrol Edilir:**
+- ✅ **Agent çağrılırken:** İlgili agent dosyası
+- ✅ **Party mode'da:** Tüm agent'lar (agent manifest'ten)
+
+---
+
+## 🔄 Kontrol Senaryoları
+
+### Senaryo 1: Yeni Feature Ekleme
+**Kontrol Edilecekler:**
+1. ✅ `roadmap.mdc` - Öncelik kontrolü
+2. ✅ `prd.md` - Requirements kontrolü
+3. ✅ `epics.md` - Epic/Story mapping
+4. ✅ `architecture.md` - Mimari kararlar
+5. ✅ `api-contracts.md` - API interface (backend ise)
+6. ✅ `component-inventory.md` - Component yapısı (frontend ise)
+
+**Workflow Çalıştırılacak:**
+- `create-story/workflow.md` - Story oluşturma
+- `dev-story/workflow.md` - Story development
+
+---
+
+### Senaryo 2: UI Refactor
+**Kontrol Edilecekler:**
+1. ✅ `roadmap.mdc` - UI Refactor önceliği (P3.3)
+2. ✅ `ui-refresh-plan-incremental.md` - UI refactor planı
+3. ✅ `ux-design-specification.md` - UX tasarım spesifikasyonu
+4. ✅ `stitch_main_pos_terminal_screen/` - Design referansları
+
+**Workflow Çalıştırılacak:**
+- `create-ux-design/workflow.md` - UX design güncelleme (gerekirse)
+
+---
+
+### Senaryo 3: Bug Fix
+**Kontrol Edilecekler:**
+1. ✅ `roadmap.mdc` - Öncelik kontrolü
+2. ✅ İlgili story file - Story context
+3. ✅ İlgili `*-CODE-REVIEW.md` - Code review bulguları
+4. ✅ `codebase-audit-report.md` - Audit bulguları (ilgili ise)
+
+**Workflow Çalıştırılacak:**
+- `code-review/workflow.md` - Code review (fix sonrası)
+- `correct-course/workflow.md` - Course correction (gerekirse)
+
+---
+
+### Senaryo 4: Epic Tamamlama
+**Kontrol Edilecekler:**
+1. ✅ `epics.md` - Epic durumu
+2. ✅ Epic retrospective dosyası - Öğrenilen dersler
+3. ✅ `roadmap.mdc` - Epic durumu güncelleme
+
+**Workflow Çalıştırılacak:**
+- `retrospective/workflow.md` - Epic retrospective
+
+---
+
+### Senaryo 5: Code Review
+**Kontrol Edilecekler:**
+1. ✅ İlgili story file - Story context
+2. ✅ İlgili `*-CODE-REVIEW.md` - Önceki code review bulguları
+3. ✅ `hardening-summary-*.md` - Hardening bulguları
+
+**Workflow Çalıştırılacak:**
+- `code-review/workflow.md` - Code review
+
+---
+
+## 🎯 Otomatik Kontrol Sistemi
+
+### Pre-Code Kontrol (Kod Yazmadan Önce)
+
+**Her Zaman Kontrol Edilenler:**
+1. ✅ `roadmap.mdc` - Öncelikler, epic durumu, süreç döngüsü
+
+**Kategori Bazlı Kontroller:**
+- **Feature Ekleme:** Planning artifacts (prd, epics, architecture)
+- **UI Değişikliği:** UI refresh plan, UX design spec
+- **Backend Değişikliği:** API contracts, data models
+- **Frontend Değişikliği:** Component inventory
+- **Story Implementation:** Story file, code review
+
+---
+
+### During-Code Kontrol (Kod Yazarken)
+
+**Referans Kontrolleri:**
+- İlgili kategori dosyalarına referans ver
+- Pattern'leri kullan (implementation artifacts'tan)
+- Best practices'i takip et (code review'lardan)
+
+---
+
+### Post-Code Kontrol (Kod Yazdıktan Sonra)
+
+**Güncelleme Kontrolleri:**
+- Story file güncellendi mi?
+- Code review yapıldı mı?
+- Roadmap güncellendi mi?
+- Documentation güncellendi mi?
+
+**Workflow Çalıştırma:**
+- Story implementation tamamlandıysa → `code-review/workflow.md`
+- Epic tamamlandıysa → `retrospective/workflow.md`
+- Sprint tamamlandıysa → `sprint-status/workflow.md`
+
+---
+
+## 📋 Kontrol Checklist'i
+
+### Her Kod Yazma İşleminde
+
+**1. Roadmap Kontrolü (ZORUNLU)**
+- [ ] `roadmap.mdc` - Öncelik sırası kontrol edildi
+- [ ] Epic durumu kontrol edildi
+- [ ] Süreç döngüsü kontrol edildi
+
+**2. Kategori Bazlı Kontrol (İhtiyaca Göre)**
+- [ ] Planning artifacts kontrol edildi (feature ekleme ise)
+- [ ] Implementation artifacts kontrol edildi (story implementation ise)
+- [ ] Core documentation kontrol edildi (API/component değişikliği ise)
+- [ ] UI artifacts kontrol edildi (UI değişikliği ise)
+
+**3. Workflow Kontrolü (İhtiyaca Göre)**
+- [ ] İlgili workflow çalıştırıldı mı?
+- [ ] Workflow output'u kontrol edildi mi?
+
+---
+
+## 🚀 Hızlı Referans
+
+**Kod yazmadan önce:**
+1. `roadmap.mdc` kontrol et (ZORUNLU)
+2. İlgili kategori dosyalarını kontrol et
+3. İlgili workflow'u çalıştır (gerekirse)
+
+**Kod yazarken:**
+1. Kategori dosyalarına referans ver
+2. Pattern'leri kullan
+3. Best practices'i takip et
+
+**Kod yazdıktan sonra:**
+1. Story file güncelle
+2. Code review yap
+3. Roadmap güncelle
+4. İlgili workflow'u çalıştır
+
+---
+
+**Son Güncelleme:** 2026-01-18  
+**Versiyon:** 1.0.0
+
+---
+
+## 🤖 AI Optimizasyonu Referansları
+
+### AI için Optimize Edilmiş Kod Yapısı
+**Referans:** [AI için Optimize Edilmiş Kod Yapısı](https://medium.com/@your-article)
+
+**Entegrasyon:**
+- `ai-optimization.mdc` - AI optimizasyon kuralları
+- `.eslintrc.js` - ESLint konfigürasyonu (AI optimizasyon kuralları dahil)
+- React Rules: AI optimizasyon bölümü eklendi
+
+**Kullanım:**
+- Kod yazarken `ai-optimization.mdc` dosyasındaki kuralları takip et
+- ESLint kuralları ile AI refactoring yap
+- "Fix in Chat" ile otomatik refactoring kullan
+
+---
+
+## 📚 External Best Practices Referansları
+
+### Vercel Labs React Best Practices
+**Referans:** [Vercel Labs Agent Skills - React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices)
+
+**Entegrasyon:**
+- `reactrules.mdc` - Vercel Best Practices entegre edildi
+- Tauri Desktop App için uyarlanmış
+- Öncelik sırası: Critical → High → Medium → Low
+
+**Kullanım:**
+- Kod yazarken `reactrules.mdc` dosyasındaki Vercel pattern'lerini takip et
+- Bundle optimization sırasında Vercel'in öncelik sırasını uygula
+- UI Refactor sırasında route-based code splitting uygula

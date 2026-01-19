@@ -1,0 +1,518 @@
+---
+alwaysApply: true
+---
+
+# Start Guide - Otomatik Başlangıç Sistemi
+
+**Bu dosya "başla" komutu verildiğinde otomatik olarak kontrol edilir.**
+
+**Amaç:** Kullanıcı "başla" dediğinde, sistem otomatik olarak roadmap'teki öncelikleri kontrol edip doğru başlangıç noktasını belirler.
+
+---
+
+## 🚀 "Başla" Komutu İşleme Süreci
+
+### 1. Otomatik Öncelik Kontrolü
+
+**Sistem otomatik olarak şunları yapar:**
+
+1. **Roadmap'i Kontrol Et:**
+   - `_bmad-output/planning-artifacts/roadmap.mdc` dosyasını oku
+   - "Şu Anki Öncelikler" bölümünü bul
+   - En yüksek öncelikli işi belirle
+
+2. **Epic Durumunu Kontrol Et:**
+   - Hangi epic'ler tamamlandı?
+   - Hangi epic'ler in-progress?
+   - Hangi epic'ler yapılacak?
+
+3. **İlgili Dosyaları Kontrol Et:**
+   - İlgili planning artifacts (prd, epics, architecture)
+   - İlgili implementation artifacts (story files, code reviews)
+   - İlgili core documentation (API contracts, data models)
+
+4. **İlgili Workflow'ları Belirle:**
+   - Hangi workflow çalıştırılmalı?
+   - Hangi agent çağrılmalı?
+
+5. **İlk Adımları Göster:**
+   - Öncelikli iş için ilk adımlar
+   - Gerekli dosyalar ve referanslar
+   - Quality gates
+
+---
+
+## 📋 Öncelik Bazlı Başlangıç Senaryoları
+
+### Senaryo 1: Test Infrastructure (P3.1 - EN YÜKSEK ÖNCELİK)
+
+**Durum:** 🔴 **YAPILMADI**
+
+**Otomatik Kontrol:**
+- [ ] Roadmap'te P3.1 önceliği kontrol edildi
+- [ ] Test framework setup gereksinimleri kontrol edildi
+- [ ] Critical path tests gereksinimleri kontrol edildi
+
+**İlk Adımlar:**
+1. **Test Framework Setup:**
+   ```bash
+   # Vitest + React Testing Library kurulumu
+   npm install --save-dev vitest @testing-library/react @testing-library/jest-dom
+   ```
+
+2. **Test Configuration:**
+   - `vitest.config.ts` oluştur
+   - `tsconfig.json` test config ekle
+   - Test directory structure oluştur (`src/__tests__/`)
+
+3. **İlk Test Yaz:**
+   - Authentication test (login, logout)
+   - POS test (barcode scan, cart)
+   - Stock test (adjustment, validation)
+
+4. **Workflow Çalıştır:**
+   - `@_bmad/bmm/workflows/testarch/framework` - Test framework setup
+   - `@_bmad/bmm/workflows/testarch/test-design` - Test design
+
+**Referanslar:**
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.1)
+- Test Architecture: `_bmad/bmm/testarch/`
+- Development Guide: `_bmad-output/development-guide.md`
+
+---
+
+### Senaryo 2: UI Refactor (P3.3 - KRİTİK: Kullanıcı Deneyimi)
+
+**Durum:** 🔴 **YAPILMADI**
+
+**Otomatik Kontrol:**
+- [ ] Roadmap'te P3.3 önceliği kontrol edildi
+- [ ] UI Refresh Plan kontrol edildi
+- [ ] Design referansları kontrol edildi (`stitch_main_pos_terminal_screen/`)
+
+**İlk Adımlar:**
+1. **Design System Foundation (Phase 1):**
+   ```bash
+   # Tailwind CSS kurulumu
+   npm install -D tailwindcss postcss autoprefixer
+   npx tailwindcss init -p
+   ```
+
+2. **Design Tokens:**
+   - `src/design-tokens.ts` oluştur
+   - Color palette extraction (`stitch_main_pos_terminal_screen/`)
+   - Typography, spacing, border radius tanımları
+
+3. **Material Symbols Font:**
+   - Material Symbols font ekle
+   - Icon usage pattern'leri
+
+4. **Workflow Çalıştır:**
+   - `@_bmad/bmm/workflows/create-ux-design` - UX design güncelleme (gerekirse)
+
+**Referanslar:**
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.3)
+- UI Refresh Plan: `_bmad-output/planning-artifacts/ui-refresh-plan-incremental.md`
+- Design Source: `stitch_main_pos_terminal_screen/`
+- Design System Guide: `stitch_main_pos_terminal_screen/omni-panel_design_system_guide/`
+
+---
+
+### Senaryo 3: Documentation Improvements (P3.2)
+
+**Durum:** 🟡 **KISMEN YAPILDI**
+
+**Otomatik Kontrol:**
+- [ ] Roadmap'te P3.2 önceliği kontrol edildi
+- [ ] Mevcut documentation durumu kontrol edildi
+- [ ] API documentation eksiklikleri kontrol edildi
+
+**İlk Adımlar:**
+1. **API Documentation:**
+   - `_bmad-output/api-contracts.md` kontrol et
+   - Tauri commands documentation
+   - Type definitions documentation
+
+2. **Component Documentation:**
+   - `_bmad-output/component-inventory.md` kontrol et
+   - JSDoc comments ekle
+   - Component props documentation
+
+3. **Workflow Çalıştır:**
+   - `@_bmad/bmm/workflows/document-project` - Project documentation
+
+**Referanslar:**
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.2)
+- API Contracts: `_bmad-output/api-contracts.md`
+- Component Inventory: `_bmad-output/component-inventory.md`
+
+---
+
+### Senaryo 4: Performance Optimization (P3.4)
+
+**Durum:** 🟡 **KISMEN YAPILDI**
+
+**Otomatik Kontrol:**
+- [ ] Roadmap'te P3.4 önceliği kontrol edildi
+- [ ] Vercel Best Practices kontrol edildi
+- [ ] Bundle analyzer setup kontrol edildi
+
+**İlk Adımlar:**
+1. **Bundle Analyzer Setup:**
+   ```bash
+   npm install --save-dev rollup-plugin-visualizer
+   ```
+
+2. **Vite Config Güncelle:**
+   - `vite.config.ts`'e visualizer plugin ekle
+   - Bundle analysis çalıştır
+
+3. **Route-based Code Splitting:**
+   - `App.tsx`'te React.lazy kullan
+   - Her route için lazy loading
+
+4. **Waterfall Elimination:**
+   - Promise.all pattern review
+   - useEffect zincirleme kontrolü
+
+**Referanslar:**
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.4)
+- React Rules: `.cursor/rules/reactrules.mdc` (Vercel Best Practices)
+- Vercel Reference: https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices
+
+---
+
+## 🎯 Otomatik Başlangıç Algoritması
+
+### "Başla" Komutu İşleme
+
+**1. Roadmap Analizi:**
+```typescript
+// Pseudo-code
+const roadmap = readRoadmap();
+const currentPriority = roadmap.getCurrentPriority(); // P3.1, P3.2, P3.3, P3.4
+const epicStatus = roadmap.getEpicStatus();
+```
+
+**2. Öncelik Belirleme:**
+- P3.1 (Test Infrastructure) → EN YÜKSEK
+- P3.3 (UI Refactor) → KRİTİK (Kullanıcı Deneyimi)
+- P3.2 (Documentation) → YÜKSEK
+- P3.4 (Performance) → ORTA-YÜKSEK
+
+**3. Senaryo Seçimi:**
+- Öncelik sırasına göre senaryo seç
+- İlgili dosyaları kontrol et
+- İlgili workflow'ları belirle
+
+**4. İlk Adımları Göster:**
+- Öncelikli iş için ilk adımlar
+- Gerekli komutlar
+- Referanslar
+
+**5. Otomatik Commit Önerisi:**
+- Her güvenilir değişiklik sonrasında commit yap
+- Quality gates geçtiyse → Commit
+- Conventional commits formatı kullan
+- Script: `npm run dev:commit "feat(scope): description"`
+
+**6. AI Optimizasyonu Kontrolü:**
+- Dosya boyutu < 250 satır (ESLint: `max-lines`)
+- Dosya başına tek React component (ESLint: `react/no-multi-comp`)
+- ESLint kontrolü: `npm run lint`
+
+---
+
+## 📋 "Başla" Komutu Checklist
+
+**Kullanıcı "başla" dediğinde:**
+
+1. ✅ Roadmap'i kontrol et (`roadmap.mdc`)
+2. ✅ Şu anki önceliği belirle (P3.1, P3.2, P3.3, P3.4)
+3. ✅ Epic durumunu kontrol et
+4. ✅ İlgili dosyaları kontrol et (planning artifacts, implementation artifacts)
+5. ✅ İlgili workflow'ları belirle
+6. ✅ İlk adımları göster
+7. ✅ Quality gates'i hatırlat
+
+---
+
+## 🚀 Hızlı Başlangıç Komutları
+
+**"Başla" dediğinde sistem otomatik olarak:**
+
+```bash
+# 1. Pre-code checklist çalıştır
+npm run dev:checklist
+
+# 2. Roadmap'teki önceliği göster
+# 3. İlgili senaryoyu seç
+# 4. İlk adımları göster
+# 5. İlgili workflow'u öner
+```
+
+---
+
+## 📚 Senaryo Bazlı Referanslar
+
+### Test Infrastructure (P3.1)
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.1)
+- Test Architecture: `_bmad/bmm/testarch/`
+- Workflow: `@_bmad/bmm/workflows/testarch/framework`
+
+### UI Refactor (P3.3)
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.3)
+- UI Refresh Plan: `_bmad-output/planning-artifacts/ui-refresh-plan-incremental.md`
+- Design Source: `stitch_main_pos_terminal_screen/`
+- Workflow: `@_bmad/bmm/workflows/create-ux-design`
+
+### Documentation (P3.2)
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.2)
+- API Contracts: `_bmad-output/api-contracts.md`
+- Workflow: `@_bmad/bmm/workflows/document-project`
+
+### Performance (P3.4)
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc` (P3.4)
+- React Rules: `.cursor/rules/reactrules.mdc` (Vercel Best Practices)
+- Vercel Reference: https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices
+
+---
+
+---
+
+## 🔄 "Devam Et" Komutu İşleme Süreci
+
+**Kullanıcı "devam et" dediğinde sistem otomatik olarak:**
+
+1. **Son Yapılan İşi Kontrol Et:**
+   - Roadmap'teki son tamamlanan işi bul
+   - Epic durumunu kontrol et (tamamlandı mı? in-progress mi?)
+   - Story durumunu kontrol et (acceptance criteria tamamlandı mı?)
+
+2. **Kaldığı Yerden Devam Et:**
+   - Eğer bir epic in-progress ise → O epic'e devam et
+   - Eğer bir story in-progress ise → O story'ye devam et
+   - Eğer bir workflow yarıda kaldıysa → O workflow'u devam ettir
+
+3. **Bir Sonraki Adımı Belirle:**
+   - Roadmap'teki öncelik sırasına göre bir sonraki işi belirle
+   - Epic/Story acceptance criteria'larını kontrol et
+   - İlgili dosyaları ve referansları belirle
+
+4. **İlgili Dosyaları Kontrol Et:**
+   - İlgili story file'ı kontrol et
+   - İlgili code review dosyasını kontrol et
+   - İlgili planning artifacts'ı kontrol et
+
+5. **Workflow'u Devam Ettir:**
+   - Eğer bir workflow yarıda kaldıysa → `--resume` flag ile devam et
+   - Eğer yeni bir iş başlatılacaksa → İlgili workflow'u başlat
+
+---
+
+## 📋 "Devam Et" Senaryoları
+
+### Senaryo 1: Epic In-Progress
+
+**Durum:** Epic başlatıldı ama tamamlanmadı
+
+**Otomatik Kontrol:**
+- [ ] Roadmap'te epic durumu: IN-PROGRESS
+- [ ] Story'lerin durumu: Hangi story'ler tamamlandı?
+- [ ] Acceptance criteria: Hangi criteria'lar tamamlandı?
+
+**Devam Adımları:**
+1. **Epic Durumunu Kontrol Et:**
+   - `_bmad-output/planning-artifacts/epics.md` kontrol et
+   - Epic'in hangi story'leri var?
+   - Hangi story'ler tamamlandı?
+
+2. **Bir Sonraki Story'yi Belirle:**
+   - Tamamlanmamış story'leri listele
+   - Öncelik sırasına göre bir sonraki story'yi seç
+   - Story file'ı kontrol et
+
+3. **Story'ye Devam Et:**
+   - Story acceptance criteria'larını kontrol et
+   - İlgili dosyaları kontrol et
+   - İlgili workflow'u çalıştır: `@_bmad/bmm/workflows/dev-story`
+
+**Referanslar:**
+- Epic Status: `_bmad-output/planning-artifacts/roadmap.mdc` (Epic Durum Özeti)
+- Story Files: `_bmad-output/implementation-artifacts/{epic}-{story}-*.md`
+- Workflow: `@_bmad/bmm/workflows/dev-story`
+
+---
+
+### Senaryo 2: Story In-Progress
+
+**Durum:** Story başlatıldı ama tamamlanmadı
+
+**Otomatik Kontrol:**
+- [ ] Story file'ı kontrol et: Hangi acceptance criteria tamamlandı?
+- [ ] Code review durumu: Code review yapıldı mı?
+- [ ] Test durumu: Testler yazıldı mı?
+
+**Devam Adımları:**
+1. **Story File'ı Kontrol Et:**
+   - `_bmad-output/implementation-artifacts/{epic}-{story}-*.md` kontrol et
+   - Acceptance criteria'ları kontrol et
+   - Tamamlanan işleri işaretle
+
+2. **Kalan İşleri Belirle:**
+   - Tamamlanmamış acceptance criteria'ları listele
+   - İlgili dosyaları kontrol et
+   - İlgili kodları kontrol et
+
+3. **Story'ye Devam Et:**
+   - Kalan acceptance criteria'ları tamamla
+   - Code review yap: `@_bmad/bmm/workflows/code-review`
+   - Testleri yaz ve çalıştır
+   - **Quality gates geçtiyse → Commit yap:** `npm run dev:commit "feat(scope): description"`
+
+**Referanslar:**
+- Story File: `_bmad-output/implementation-artifacts/{epic}-{story}-*.md`
+- Code Review: `_bmad-output/implementation-artifacts/*-CODE-REVIEW.md`
+- Workflow: `@_bmad/bmm/workflows/dev-story`
+
+---
+
+### Senaryo 3: Workflow Yarıda Kaldı
+
+**Durum:** Bir workflow başlatıldı ama tamamlanmadı
+
+**Otomatik Kontrol:**
+- [ ] Hangi workflow çalışıyordu?
+- [ ] Workflow'un hangi adımındayız?
+- [ ] Workflow output'u var mı?
+
+**Devam Adımları:**
+1. **Workflow Durumunu Kontrol Et:**
+   - `_bmad-output/planning-artifacts/bmm-workflow-status.yaml` kontrol et
+   - Son çalışan workflow'u bul
+   - Workflow'un hangi adımında olduğunu belirle
+
+2. **Workflow'u Devam Ettir:**
+   - `--resume` flag ile workflow'u devam ettir
+   - Örnek: `@_bmad/bmm/workflows/document-project --resume`
+   - Workflow output'u kontrol et
+
+3. **Workflow'u Tamamla:**
+   - Kalan adımları tamamla
+   - Output'u kaydet
+   - Workflow durumunu güncelle
+   - **Quality gates geçtiyse → Commit yap:** `npm run dev:commit "docs(workflow): description"`
+
+**Referanslar:**
+- Workflow Status: `_bmad-output/planning-artifacts/bmm-workflow-status.yaml`
+- Workflow Output: `_bmad-output/` (ilgili klasör)
+- Workflow: `@_bmad/bmm/workflows/{workflow-name}`
+
+---
+
+### Senaryo 4: Bir Sonraki Öncelikli İş
+
+**Durum:** Mevcut iş tamamlandı, bir sonraki işe geç
+
+**Otomatik Kontrol:**
+- [ ] Roadmap'teki öncelik sırasını kontrol et
+- [ ] Tamamlanan işleri işaretle
+- [ ] Bir sonraki öncelikli işi belirle
+
+**Devam Adımları:**
+1. **Tamamlanan İşleri İşaretle:**
+   - Roadmap'te tamamlanan işleri işaretle
+   - Epic durumunu güncelle
+   - Story durumunu güncelle
+
+2. **Bir Sonraki Öncelikli İşi Belirle:**
+   - Roadmap'teki öncelik sırasını kontrol et
+   - Bir sonraki öncelikli işi seç
+   - İlgili senaryoyu belirle (start-guide.mdc'den)
+
+3. **Yeni İşe Başla:**
+   - "Başla" komutu senaryosunu uygula
+   - İlk adımları göster
+   - İlgili workflow'u başlat
+   - **Her güvenilir değişiklik sonrasında → Commit yap:** `npm run dev:commit "feat(scope): description"`
+
+**Referanslar:**
+- Roadmap: `_bmad-output/planning-artifacts/roadmap.mdc`
+- Start Guide: `start-guide.mdc` (yukarıdaki senaryolar)
+
+---
+
+## 🎯 "Devam Et" Komutu Algoritması
+
+### Otomatik Devam Süreci
+
+**1. Son İş Kontrolü:**
+```typescript
+// Pseudo-code
+const lastWork = getLastCompletedWork();
+const currentEpic = getCurrentEpic();
+const currentStory = getCurrentStory();
+const currentWorkflow = getCurrentWorkflow();
+```
+
+**2. Durum Belirleme:**
+- Epic in-progress? → Senaryo 1
+- Story in-progress? → Senaryo 2
+- Workflow yarıda kaldı? → Senaryo 3
+- İş tamamlandı? → Senaryo 4
+
+**3. Devam Adımları:**
+- İlgili senaryoyu seç
+- İlgili dosyaları kontrol et
+- İlgili workflow'u devam ettir veya başlat
+
+---
+
+## 📋 "Devam Et" Komutu Checklist
+
+**Kullanıcı "devam et" dediğinde:**
+
+1. ✅ Son yapılan işi kontrol et (roadmap, epic, story)
+2. ✅ Epic durumunu kontrol et (tamamlandı mı? in-progress mi?)
+3. ✅ Story durumunu kontrol et (acceptance criteria tamamlandı mı?)
+4. ✅ Workflow durumunu kontrol et (yarıda kaldı mı?)
+5. ✅ Bir sonraki adımı belirle (epic, story, workflow)
+6. ✅ İlgili dosyaları kontrol et (story file, code review, planning artifacts)
+7. ✅ İlgili workflow'u devam ettir veya başlat
+
+---
+
+## 🚀 Hızlı Referans
+
+**"Devam et" dediğinde sistem otomatik olarak:**
+
+```bash
+# 1. Son işi kontrol et
+# 2. Epic/Story durumunu kontrol et
+# 3. Workflow durumunu kontrol et
+# 4. Bir sonraki adımı belirle
+# 5. İlgili workflow'u devam ettir veya başlat
+```
+
+**Örnek Senaryolar:**
+- Epic 7 in-progress → Epic 7'ye devam et → Quality gates geçtiyse commit
+- Story 7.5 in-progress → Story 7.5'e devam et → Quality gates geçtiyse commit
+- document-project workflow yarıda kaldı → `--resume` ile devam et → Quality gates geçtiyse commit
+- P3.1 tamamlandı → P3.3'e (UI Refactor) geç → Her güvenilir değişiklik sonrasında commit
+
+**Otomatik Commit Kullanımı:**
+```bash
+# Quality gates çalıştır ve geçtiyse commit yap
+npm run dev:commit "feat(test): add Vitest test framework setup"
+
+# Örnek commit mesajları:
+npm run dev:commit "feat(auth): add role-based access control"
+npm run dev:commit "fix(pos): fix race condition in session check"
+npm run dev:commit "refactor(stock): extract magic numbers to constants"
+npm run dev:commit "docs(api): add Tauri commands documentation"
+```
+
+---
+
+**Son Güncelleme:** 2026-01-18  
+**Versiyon:** 1.1.0 (Devam Et komutu eklendi)

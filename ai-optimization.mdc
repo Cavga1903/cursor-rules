@@ -1,0 +1,211 @@
+---
+alwaysApply: true
+---
+
+# AI Optimizasyonu - Context Window için Kritik Kurallar
+
+**Bu dosya AI araçlarının (Cursor, Claude, Copilot) kodunuzu daha iyi anlaması için optimize edilmiş kuralları içerir.**
+
+**Referans:** [AI için Optimize Edilmiş Kod Yapısı](https://medium.com/@your-article)
+
+---
+
+## 🤖 Problem: Context Window Limiti
+
+**AI araçlarının bir context window'u var.** Yani aynı anda ne kadar kodu anlayabileceklerinin bir sınırı bulunuyor.
+
+**500+ satırlık bir component dosyanız varsa ne oluyor?**
+- ❌ AI tüm dosyayı context'e alamıyor veya zorlanıyor
+- ❌ Öneriler dosyanın sadece bir kısmına dayanıyor
+- ❌ Refactoring önerileri tutarsız oluyor
+- ❌ "Fix in Chat" dediğinizde AI kaybolabiliyor
+
+**Çözüm:** 2 basit ESLint kuralı işinizi görecek.
+
+---
+
+## 📋 AI Optimizasyon Kuralları
+
+### Kural 1: Maksimum Satır Limiti (250 satır)
+
+**ESLint Kuralı:**
+```javascript
+'max-lines': ['error', {
+  max: 250,
+  skipBlankLines: true,
+  skipComments: true
+}]
+```
+
+**Neden 250 satır?**
+- React componentleri formatlamadan dolayı daha fazla satır içermeye eğilimli
+- 250 satır çoğu component için yeterli
+- Gereksiz bölmelerden kaçınır
+- AI'ın context window'unu aşmamak için optimal
+
+**Öneri:** 250 satır ile başlayın, projenize göre ayarlayın. Önemli olan bir limit koymak, spesifik sayı değil.
+
+---
+
+### Kural 2: Dosya Başına Tek React Component
+
+**ESLint Kuralı:**
+```javascript
+'react/no-multi-comp': ['error', { 
+  ignoreStateless: false 
+}]
+```
+
+**Neden tek component?**
+
+AI'a "bu dosyayı düzelt" dediğinizde, AI'ın cevaplaması gereken ilk soru: **"Bu dosya ne yapıyor?"**
+
+**❌ Kötü Örnek:**
+```typescript
+// UserProfile.tsx - 3 component aynı dosyada
+function UserAvatar() { ... }
+function UserStats() { ... }
+function UserProfile() { ... }
+
+// AI düşüncesi: "Hangisini düzelteyim? Aralarındaki ilişki ne?"
+```
+
+**✅ İyi Örnek:**
+```typescript
+// components/UserAvatar.tsx
+function UserAvatar() { ... }
+
+// components/UserStats.tsx
+function UserStats() { ... }
+
+// components/UserProfile.tsx
+function UserProfile() { ... }
+
+// AI düşüncesi: "UserAvatar, avatar gösteriyor. Bunu optimize edeyim."
+```
+
+**Tek component = Tek sorumluluk = Net cevap.**
+
+---
+
+### Bonus Kurallar
+
+**3. Fonksiyon Boyutu Limiti (50 satır)**
+```javascript
+'max-lines-per-function': ['warn', {
+  max: 50,
+  skipBlankLines: true,
+  skipComments: true
+}]
+```
+
+**4. Dosya Karmaşıklığı (10)**
+```javascript
+'complexity': ['warn', 10]
+```
+
+---
+
+## 🔍 Mevcut Proje Durumu
+
+**⚠️ Büyük Dosyalar (250+ satır):**
+
+| Dosya | Satır | Durum | Öncelik |
+|-------|-------|-------|---------|
+| `src/pages/StockPage.tsx` | 1227 | ❌ | 🔴 YÜKSEK |
+| `src/pages/POS.tsx` | 1117 | ❌ | 🔴 YÜKSEK |
+| `src/components/DashboardTab.tsx` | 635 | ❌ | 🟡 ORTA |
+| `src/pages/SalesHistoryPage.tsx` | 556 | ❌ | 🟡 ORTA |
+| `src/components/ProductsTab.tsx` | 548 | ❌ | 🟡 ORTA |
+| `src/pages/ProductsPage.tsx` | 503 | ❌ | 🟡 ORTA |
+
+**Refactoring Önceliği:**
+1. **POS.tsx** (1117 satır) - En kritik, en çok kullanılan
+2. **StockPage.tsx** (1227 satır) - En büyük
+3. **DashboardTab.tsx** (635 satır)
+4. Diğer sayfalar
+
+---
+
+## 🚀 "Fix in Chat" Akışı
+
+**ESLint kuralları ile AI refactoring:**
+
+1. **Kod yazarsınız** → ESLint hata verir: "File has too many lines (324/250)"
+2. **"Fix in Chat" tıklarsınız** → Cursor dosyayı analiz eder
+3. **AI önerir:** "Bu dosyayı 2 parçaya bölebilirim: ProductList ve ProductItem"
+4. **Kabul edersiniz** → Otomatik refactoring
+
+**Manuel refactoring yapmak yerine, AI sizin için en mantıklı bölme noktasını buluyor.** Çünkü artık dosya yeterince küçük ki AI tüm context'i anlayabiliyor.
+
+---
+
+## 💡 Pratik İpuçları
+
+### 1. Mevcut projeye uygularken:
+
+```javascript
+// Başlangıçta warn olarak başlayın
+'max-lines': ['warn', { max: 300 }]
+
+// Zamanla error'a çevirin
+'max-lines': ['error', { max: 250 }]
+```
+
+### 2. Bazı dosyaları hariç tutun:
+
+```javascript
+overrides: [
+  {
+    files: ['*.test.js', '*.stories.js'],
+    rules: {
+      'max-lines': 'off'
+    }
+  }
+]
+```
+
+### 3. Import'ları saymamak için:
+
+```javascript
+'max-lines': ['error', {
+  max: 250,
+  skipBlankLines: true,
+  skipComments: true
+  // Not: ESLint import'ları otomatik saymıyor,
+  // ama genelde sorun olmuyor
+}]
+```
+
+---
+
+## 📋 Development Workflow Entegrasyonu
+
+**Kod yazarken kontrol et:**
+- [ ] Dosya boyutu < 250 satır (ESLint: `max-lines`)
+- [ ] Dosya başına tek React component (ESLint: `react/no-multi-comp`)
+- [ ] Fonksiyon boyutu < 50 satır (ESLint: `max-lines-per-function`)
+- [ ] Dosya karmaşıklığı < 10 (ESLint: `complexity`)
+
+**Quality Gates:**
+```bash
+npm run lint  # ESLint kontrolü (AI optimizasyon kuralları dahil)
+npm run lint:fix  # Otomatik düzeltme
+```
+
+---
+
+## 🎯 Sonuç
+
+**AI destekli development sadece AI kullanmak değildir. Aynı zamanda kod mimarinizi AI'ın anlayabileceği şekilde yapılandırmak da gereklidir.**
+
+**2 basit ESLint kuralı:**
+- ✅ Max 250 satır per dosya
+- ✅ Dosya başına tek React component
+
+**Özel konfigürasyonlara gerek yok. ESLint zaten halihazırda projelerinizde var, sadece 2 kural eklemeniz yeterli.**
+
+---
+
+**Son Güncelleme:** 2026-01-18  
+**Versiyon:** 1.0.0

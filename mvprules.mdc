@@ -1,0 +1,201 @@
+---
+alwaysApply: false
+---
+# Omni-Panel ROS Market — MVP Rules (LAW)
+
+> ⚠️ **ÖNEMLİ:** Bu dosya MVP kurallarını içerir. Ayrıca `roadmaprules.mdc` dosyasını da kontrol et - roadmap önceliklerine uy.
+
+> 📋 **Roadmap Referansı:** `_bmad-output/planning-artifacts/roadmap.mdc` - Şu anki öncelik: **Test Infrastructure** (P3.1) ve **UI Refactor** (P3.3)
+
+## (0) MVP North Star
+If it doesn’t help **sell / take payment / track stock / manage staff**, it is OUT.
+
+🇩🇪 **Nur das Nötigste zählt.** (*nötig* = necessary)
+
+---
+
+## (1) Surfaces & Navigation Contract
+
+### Surfaces (HARD)
+- **POS** (`/pos`): cashier flow, fastest path, zero clutter
+- **OWNER** (`/owner/*`): products, stock tracking, staff/pin, basic analytics
+- **AUTH** (`/login`): unlock identity only
+
+### Single Navigation Rule
+- ONE global nav per role.
+- No page-level duplicate nav (tabs/quick-actions that behave like nav are forbidden).
+
+### Page Naming (FIX)
+- `Ürünler` = Products
+- `Stok Takibi` = Stock Tracking (NOT “stok düzenleme”)
+- `Personel Takibi` = Staff (NOT “çalışanlar”)
+- `Envanter` page is FORBIDDEN unless it adds unique value beyond Stock Tracking.
+
+---
+
+## (2) Identity & RBAC Contract (PIN-first)
+
+### Roles
+- OWNER: can do damage (products/users/stock/analytics)
+- CASHIER: can only sell + view own shift totals
+
+### Rule: Fail Closed
+- Guards MUST redirect to `/login` if role is missing/invalid.
+- Guards MUST NOT fetch business data.
+
+### PIN UX Rule (No “click then ask PIN” spam)
+- Don’t do “every click asks PIN”. That’s trash UX.
+- Do **unlock session**:
+  - App boots → user selects profile (Owner/Cashier) → enters PIN → session unlocked
+  - Session TTL: configurable (default 8h) + manual lock
+- Sensitive actions (owner-only destructive) MAY require re-PIN:
+  - delete product
+  - large stock correction
+  - user role change
+
+🇩🇪 **Sicherheit ohne Friktion.** (*die Friktion* = friction)
+
+---
+
+## (3) Offline-First Contract (Tauri is primary)
+
+### Truth
+Network is optional. Store is not.
+
+### Local Persistence (MANDATORY)
+- Tauri: SQLite (preferred) OR a single local store abstraction (if already exists).
+- Web dev mode: IndexedDB/localStorage fallback acceptable for dev only.
+
+### Outbox (MANDATORY)
+Any mutation while offline MUST:
+- write to local DB/outbox
+- include `idempotency_key`
+- retry on reconnect
+- show status: pending/synced/failed
+
+### Forbidden
+- “Offline payments” finalize is forbidden.
+- You may allow “offline sale draft / hold”, sync later.
+
+---
+
+## (4) Data & Ledger Contract
+
+### Money
+- Prices stored as **integer** (kuruş). Float forbidden.
+- Sales ledger is append-only. Corrections are new records.
+
+### Stock
+- Stock changes are append-only movement records:
+  - sale decreases
+  - adjustment increases/decreases with reason
+- Stock = derived value (sum movements) OR cached with strict consistency.
+
+---
+
+## (5) UX Performance Contract (Desktop-first)
+
+### Budgets
+- Barcode scan → item in cart: <100ms perceived.
+- List >50 rows must be virtualized or paginated.
+- Any “full fetch” without bounds is forbidden.
+
+### POS Layout Rules
+- F2 focuses barcode input
+- F4 completes sale
+- F6 hold/unhold
+- Zero-scroll critical path (scan → pay).
+
+---
+
+## (6) UI Consistency Contract (Modern, but controlled)
+
+### No Emoji Policy
+Emojis in navigation/buttons are forbidden.
+
+### Component Minimalism
+Use a tiny UI kit:
+- Button, Input, Card, Table, Badge, Modal, Toast
+No big framework migrations during MVP.
+
+### Styling Rules
+- 8px spacing system
+- consistent radius
+- accessible focus ring
+- empty states are mandatory (never blank screens)
+
+### UI Refactor (Roadmap P3.3 - Aktif)
+**Durum:** 🔴 **YAPILMADI** - **KRİTİK: Kullanıcı Deneyimi**
+
+**Referanslar:**
+- Design Source: `stitch_main_pos_terminal_screen/` klasörü
+- UI Refresh Plan: `_bmad-output/planning-artifacts/ui-refresh-plan-incremental.md`
+- Design System Guide: `stitch_main_pos_terminal_screen/omni-panel_design_system_guide/`
+
+**UI Refactor sırasında:**
+- Tailwind CSS kullan (design system foundation)
+- Material Symbols font kullan
+- Design token'ları kullan (`src/design-tokens.ts`)
+- Component library'den component'leri kullan
+- Stitch design'larına uy
+
+**6 Fazlı Plan:**
+1. Design System Foundation (1 hafta)
+2. Core Components Refresh (1.5 hafta)
+3. POS Screen Complete Refactor (1.5 hafta)
+4. Owner Dashboard & Pages (1 hafta)
+5. Login & Auth Screens (0.5 hafta)
+6. Additional Screens (1 hafta)
+
+🇩🇪 **Einheitlichkeit schafft Vertrauen.** (*die Einheitlichkeit* = consistency)
+
+---
+
+## (7) Tauri Runtime Safety Contract
+
+### Rule
+No unguarded IPC. Ever.
+- All `invoke()` calls MUST go through `safeInvoke()`
+- Browser dev mode MUST not crash
+
+---
+
+## (8) Route Architecture Contract
+
+### No Tabs-as-Routes
+If it changes URL-worthy content → it is a route.
+- `/owner/dashboard`
+- `/owner/products`
+- `/owner/stock`
+- `/owner/staff`
+- `/pos`
+
+---
+
+## (9) Audit Lite (MVP-safe)
+
+### Required logs (append-only)
+- login/unlock
+- sale completed
+- stock adjustment
+- user created/role changed
+Fields: actor_id, action, entity, at, device_id (if possible)
+
+No “enterprise compliance” scope creep.
+
+---
+
+## (10) Output Contract for Cursor (No narration)
+
+Cursor output MUST be ONLY:
+
+1) CHANGESET
+2) WHY
+3) CONTRACT CHECK (PASS/FAIL/UNKNOWN with evidence)
+4) TEST STEPS
+5) ROLLBACK PLAN
+6) PR SUMMARY
+
+Any narration/tool spam is INVALID.
+
+🇩🇪 **Ohne Beweise: ungültig.** (*ungültig* = invalid)

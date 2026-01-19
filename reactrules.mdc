@@ -1,0 +1,1056 @@
+---
+alwaysApply: true
+---
+# React Performans Optimizasyon Kuralları
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. Ayrıca `roadmaprules.mdc` dosyasını da kontrol et - roadmap önceliklerine uy.
+
+> 📋 **Roadmap Referansı:** `_bmad-output/planning-artifacts/roadmap.mdc` - Şu anki öncelik: **Test Infrastructure** (P3.1) ve **UI Refactor** (P3.3)
+
+---
+
+## 🤖 AI Optimizasyonu - Context Window için Kritik
+
+**Problem:** AI araçlarının (Cursor, Claude, Copilot) bir context window limiti var. 500+ satırlık component dosyaları AI'ın anlamasını zorlaştırır.
+
+**Çözüm:** 2 basit ESLint kuralı ile AI için optimize edilmiş kod yapısı.
+
+### AI Optimizasyon Kuralları
+
+**1. Maksimum Satır Limiti: 250 satır**
+```javascript
+// .eslintrc.js
+'max-lines': ['error', {
+  max: 250,
+  skipBlankLines: true,
+  skipComments: true
+}]
+```
+
+**Neden 250 satır?**
+- AI'ın context window'unu aşmamak için
+- React componentleri formatlamadan dolayı daha fazla satır içerir
+- Çoğu component için yeterli
+- Gereksiz bölmelerden kaçınır
+
+**2. Dosya Başına Tek React Component**
+```javascript
+// .eslintrc.js
+'react/no-multi-comp': ['error', { 
+  ignoreStateless: false 
+}]
+```
+
+**Neden tek component?**
+- AI'ın "bu dosya ne yapıyor?" sorusuna net cevap verebilmesi için
+- Tek sorumluluk = Net cevap
+- Refactoring önerileri tutarlı olur
+
+**❌ Kötü Örnek:**
+```typescript
+// UserProfile.tsx - 3 component aynı dosyada
+function UserAvatar() { ... }
+function UserStats() { ... }
+function UserProfile() { ... }
+
+// AI düşüncesi: "Hangisini düzelteyim? Aralarındaki ilişki ne?"
+```
+
+**✅ İyi Örnek:**
+```typescript
+// components/UserAvatar.tsx
+function UserAvatar() { ... }
+
+// components/UserStats.tsx
+function UserStats() { ... }
+
+// components/UserProfile.tsx
+function UserProfile() { ... }
+
+// AI düşüncesi: "UserAvatar, avatar gösteriyor. Bunu optimize edeyim."
+```
+
+### Bonus Kurallar
+
+**3. Fonksiyon Boyutu Limiti: 50 satır**
+```javascript
+'max-lines-per-function': ['warn', {
+  max: 50,
+  skipBlankLines: true,
+  skipComments: true
+}]
+```
+
+**4. Dosya Karmaşıklığı: 10**
+```javascript
+'complexity': ['warn', 10]
+```
+
+### Mevcut Proje Durumu
+
+**⚠️ Büyük Dosyalar (250+ satır):**
+- `src/pages/StockPage.tsx` - 1227 satır ❌
+- `src/pages/POS.tsx` - 1117 satır ❌
+- `src/components/DashboardTab.tsx` - 635 satır ❌
+- `src/pages/SalesHistoryPage.tsx` - 556 satır ❌
+- `src/components/ProductsTab.tsx` - 548 satır ❌
+- `src/pages/ProductsPage.tsx` - 503 satır ❌
+
+**Refactoring Önceliği:**
+1. **POS.tsx** (1117 satır) - En kritik, en çok kullanılan
+2. **StockPage.tsx** (1227 satır) - En büyük
+3. **DashboardTab.tsx** (635 satır)
+4. Diğer sayfalar
+
+### "Fix in Chat" Akışı
+
+**ESLint kuralları ile AI refactoring:**
+1. Kod yazarsınız → ESLint hata verir: "File has too many lines (324/250)"
+2. "Fix in Chat" tıklarsınız → Cursor dosyayı analiz eder
+3. AI önerir: "Bu dosyayı 2 parçaya bölebilirim: ProductList ve ProductItem"
+4. Kabul edersiniz → Otomatik refactoring
+
+**Manuel refactoring yapmak yerine, AI sizin için en mantıklı bölme noktasını buluyor.**
+
+### Pratik İpuçları
+
+**1. Mevcut projeye uygularken:**
+```javascript
+// Başlangıçta warn olarak başlayın
+'max-lines': ['warn', { max: 300 }]
+
+// Zamanla error'a çevirin
+'max-lines': ['error', { max: 250 }]
+```
+
+**2. Bazı dosyaları hariç tutun:**
+```javascript
+overrides: [
+  {
+    files: ['*.test.js', '*.stories.js'],
+    rules: {
+      'max-lines': 'off'
+    }
+  }
+]
+```
+
+### Sonuç
+
+**AI destekli development sadece AI kullanmak değildir. Aynı zamanda kod mimarinizi AI'ın anlayabileceği şekilde yapılandırmak da gereklidir.**
+
+**2 basit ESLint kuralı:**
+- ✅ Max 250 satır per dosya
+- ✅ Dosya başına tek React component
+
+**Özel konfigürasyonlara gerek yok. ESLint zaten halihazırda projelerinizde var, sadece 2 kural eklemeniz yeterli.**
+
+---
+
+## Öncelik Prensibi
+Performans optimizasyonu bir checklist değil, bir öncelik meselesi. Yanlış şeyi optimize etmek, hiç optimize etmemekten daha kötüdür.
+
+**Öncelik Sırası:** Waterfall → Bundle → Server → Client → Re-render
+
+---
+
+## 1. Waterfall'ları Ortadan Kaldırma (KRİTİK)
+
+Performans çalışmalarının çoğu başarısız olur çünkü çok düşük seviyeden başlar. Eğer bir request waterfall 600ms bekleme süresi ekliyorsa, useMemo optimizasyonlarınız ne kadar iyi olursa olsun pek bir şey ifade etmez.
+
+### 1.1 Bağımsız İşlemleri Paralel Çalıştırın
+
+❌ **Yanlış Kullanım** (arka arkaya await):
+```typescript
+const user = await fetchUser(id);
+const posts = await fetchPosts(id);     // User bitene kadar bekliyor!
+const comments = await fetchComments(id); // Posts bitene kadar bekliyor!
+```
+
+✅ **Doğru Kullanım** (Promise.all):
+```typescript
+const [user, posts, comments] = await Promise.all([
+  fetchUser(id),
+  fetchPosts(id),
+  fetchComments(id)
+]);  // Hepsi aynı anda başlar!
+```
+
+### 1.2 Koşullu Veri Çekme
+
+Kullanılmayacak veriyi bekletmeyin. İhtiyaç olmayan if koşullarında async işlem başlatmayın.
+
+❌ **Yanlış** (önce veri çekip sonra gerek olmadığına bakmak):
+```typescript
+async function handleRequest(userId, skipProcessing) {
+  const userData = await fetchUserData(userId);
+  if (skipProcessing) {
+    return { skipped: true };  // userData bekledik ama kullanmadık!
+  }
+  return processUserData(userData);
+}
+```
+
+✅ **Doğru** (önce koşul ile kontrol etmek):
+```typescript
+async function handleRequest(userId, skipProcessing) {
+  if (skipProcessing) {
+    return { skipped: true };  // Hemen dön, bekleme yok
+  }
+  const userData = await fetchUserData(userId);
+  return processUserData(userData);
+}
+```
+
+### 1.3 useEffect Zincirleme'den Kaçının
+
+Birbirini tetikleyen useEffect'ler, birden fazla render döngüsüne ve gecikmiş güncellemelere neden olur.
+
+❌ **Yanlış** (birden fazla effect):
+```typescript
+useEffect(() => {
+  fetchUser().then(setUser);
+}, []);
+
+useEffect(() => {
+  if (user) fetchPosts(user.id).then(setPosts);
+}, [user]);
+
+useEffect(() => {
+  if (posts) fetchComments(posts[0].id).then(setComments);
+}, [posts]);
+```
+
+✅ **Doğru** (tek useEffect):
+```typescript
+useEffect(() => {
+  async function loadData() {
+    const user = await fetchUser();
+    const posts = await fetchPosts(user.id);
+    const comments = await fetchComments(posts[0].id);
+    setData({ user, posts, comments });
+  }
+  loadData();
+}, []);
+```
+
+### 1.4 Data Fetching için Render'ı Beklemeyin
+
+Veri çekmeyi useEffect'te değil, sunucu seviyesine taşıyın (Next.js App Router örneği):
+```typescript
+// Next.js App Router - Server Component
+async function Page({ params }) {
+  const data = await fetchData(params.id);  // Render başlamadan veri hazır
+  return <ClientComponent data={data} />;
+}
+```
+
+---
+
+## 2. Bundle Boyutu Optimizasyonu (KRİTİK)
+
+Her sayfada 300KB ekstra JavaScript gönderiyorsanız, iç içe for döngülerinden aldığınız performans karı da fayda etmez. Bundle boyutu doğrudan kullanıcı deneyimini etkiler.
+
+### 2.1 Dynamic Import ile Lazy Loading
+
+Büyük bileşenleri ihtiyaç anına kadar yüklemeyin:
+```typescript
+import { lazy, Suspense } from 'react';
+
+// Ağır bileşeni lazy load et
+const HeavyChart = lazy(() => import('./HeavyChart'));
+
+function Dashboard() {
+  return (
+    <Suspense fallback={<Skeleton />}>>
+      <HeavyChart />
+    </Suspense>
+  );
+}
+```
+
+### 2.2 Sadece İhtiyacınız Olanı Import Edin
+
+❌ **Yanlış** (* karakteri kullanmak):
+```typescript
+import * as _ from 'lodash';  // Tüm lodash'ı bundle'a ekler (~70KB)
+import * as MaterialUI from '@material-ui/core';
+```
+
+✅ **Doğru** (sadece istenen metodu import etmek):
+```typescript
+import debounce from 'lodash/debounce';  // Sadece ihtiyacınız olan fonksiyon
+import throttle from 'lodash/throttle';
+import { Button, TextField } from '@material-ui/core';
+```
+
+### 2.3 Route Bazlı Kod Bölme (Tauri Desktop App için)
+
+**Tauri Desktop App'lerde route-based code splitting kritik öneme sahiptir.** Her route için ayrı chunk oluşturun:
+
+❌ **Yanlış** (tüm sayfalar initial bundle'a dahil):
+```typescript
+import POS from "./pages/POS";
+import OwnerDashboard from "./pages/OwnerDashboard";
+import ProductsPage from "./pages/ProductsPage";
+import StockPage from "./pages/StockPage";
+// Tüm sayfalar initial bundle'a dahil → büyük bundle size
+```
+
+✅ **Doğru** (lazy loading ile route-based splitting):
+```typescript
+import { lazy, Suspense } from 'react';
+
+// Lazy load pages - her route ayrı chunk olur
+const POS = lazy(() => import('./pages/POS'));
+const OwnerDashboard = lazy(() => import('./pages/OwnerDashboard'));
+const ProductsPage = lazy(() => import('./pages/ProductsPage'));
+const StockPage = lazy(() => import('./pages/StockPage'));
+const SalesHistoryPage = lazy(() => import('./pages/SalesHistoryPage'));
+const UsersPage = lazy(() => import('./pages/UsersPage'));
+const LoginPage = lazy(() => import('./pages/LoginPage'));
+
+function AppRoutes() {
+  return (
+    <BrowserRouter>
+      <Suspense fallback={<LoadingScreen />}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/pos" element={<POS />} />
+          <Route path="/owner/dashboard" element={<OwnerDashboard />} />
+          {/* Diğer routes... */}
+        </Routes>
+      </Suspense>
+    </BrowserRouter>
+  );
+}
+```
+
+**Tauri Desktop App için Özel Notlar:**
+- Desktop app'lerde initial bundle size çok önemli (ilk açılış hızı)
+- Route-based splitting ile sadece aktif route yüklenir
+- Login sayfası küçük kalır, Owner dashboard sadece gerektiğinde yüklenir
+- POS sayfası ayrı chunk olur, cashier'lar için daha hızlı başlangıç
+
+### 2.4 Bundle Analizi Yapın (Vite için)
+
+**Vite + Tauri Desktop App için bundle analizi:**
+
+❌ **Yanlış** (bundle size'ı bilmeden optimize etmeye çalışmak):
+```typescript
+// Hangi dependency ne kadar yer kaplıyor bilinmiyor
+import { everything } from 'large-library';
+```
+
+✅ **Doğru** (bundle analyzer ile ölçüm yapmak):
+```bash
+# Vite için bundle analyzer
+npm install --save-dev rollup-plugin-visualizer
+
+# vite.config.ts'e ekle:
+import { visualizer } from 'rollup-plugin-visualizer';
+
+export default defineConfig({
+  plugins: [
+    react(),
+    visualizer({
+      open: true,
+      filename: 'dist/stats.html',
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
+});
+
+# Build sonrası dist/stats.html dosyası oluşur
+npm run build
+```
+
+**Bundle Analizi Checklist:**
+- [ ] Initial bundle size < 500KB (Tauri desktop app için hedef)
+- [ ] Her route chunk < 200KB
+- [ ] Duplicate dependencies tespit edildi mi?
+- [ ] Gereksiz büyük kütüphaneler var mı?
+- [ ] Tree shaking çalışıyor mu?
+
+### 2.5 Client-Only Kütüphaneleri Dinamik Yükleyin
+
+**Tauri Desktop App'lerde SSR yok, ama yine de heavy kütüphaneleri lazy load edin:**
+
+❌ **Yanlış** (heavy kütüphaneleri initial bundle'a dahil etmek):
+```typescript
+import Chart from 'chart.js';  // ~200KB - initial bundle'a eklenir
+import MonacoEditor from 'monaco-editor';  // ~2MB - initial bundle'a eklenir
+```
+
+✅ **Doğru** (lazy loading ile ihtiyaç anında yüklemek):
+```typescript
+// Tauri Desktop App - React.lazy kullan
+import { lazy, Suspense } from 'react';
+
+// Chart sadece dashboard'da lazily yüklenir
+const Chart = lazy(() => import('chart.js'));
+
+// Monaco Editor sadece code editor sayfasında lazily yüklenir
+const MonacoEditor = lazy(() => import('monaco-editor'));
+
+function Dashboard() {
+  return (
+    <Suspense fallback={<ChartSkeleton />}>
+      <Chart data={chartData} />
+    </Suspense>
+  );
+}
+```
+
+**Tauri Desktop App için Özel Notlar:**
+- Desktop app'lerde network latency yok, ama initial bundle size kritik
+- Heavy libraries (charts, editors, visualization) lazy load edilmeli
+- User interaction'a kadar beklet (hover, click, vb.)
+
+---
+
+## 3. Sunucu Tarafı Performansı (YÜKSEK)
+
+### 3.1 Server Components Kullanın
+
+Next.js App Router'da varsayılan olarak Server Components aktif. Etkileşim gerektirmeyen bileşenleri server'da render edin:
+```typescript
+// Bu bir Server Component (varsayılan)
+async function ProductList() {
+  const products = await db.products.findMany();
+  
+  return (
+    <ul>
+      {products.map(p => <li key={p.id}>{p.name}</li>)}
+    </ul>
+  );
+}
+```
+
+### 3.2 Streaming ile Progressive Rendering
+
+Suspense boundaries kullanarak sayfanın hazır olan kısımlarını önce gönderin:
+```typescript
+async function Page() {
+  return (
+    <div>
+      <Header />  {/* Hemen render */}
+      
+      <Suspense fallback={<ProductSkeleton />}>
+        <ProductList />  {/* Veri hazır olunca stream */}
+      </Suspense>
+      
+      <Suspense fallback={<ReviewsSkeleton />}>
+        <Reviews />  {/* Bağımsız stream */}
+      </Suspense>
+    </div>
+  );
+}
+```
+
+### 3.3 Veritabanı Sorgularını Optimize Edin
+
+❌ **N+1 Query Problemi** (2 defa sorgu atılıyor):
+```typescript
+const posts = await db.posts.findMany();
+for (const post of posts) {
+  post.author = await db.users.findUnique({ where: { id: post.authorId } });
+}
+```
+
+✅ **Eager Loading** (include kullanın):
+```typescript
+const posts = await db.posts.findMany({
+  include: { author: true }
+});
+```
+
+### 3.4 Caching Stratejileri
+
+Veri çekerken cache'ten yararlanın:
+```typescript
+// Next.js fetch cache
+const data = await fetch(url, {
+  next: { revalidate: 3600 }  // 1 saat cache
+});
+
+// Unstable cache (server actions)
+import { unstable_cache } from 'next/cache';
+const getCachedData = unstable_cache(
+  async (id) => await db.find(id),
+  ['data-cache'],
+  { revalidate: 60 }
+);
+```
+
+---
+
+## 4. Client-Side Veri Çekme (ORTA-YÜKSEK)
+
+### 4.1 SWR veya React Query Kullanın
+
+Bu kütüphaneler önbellekleme, yeniden doğrulama, optimistic updates ve deduplication sağlar:
+```typescript
+import useSWR from 'swr';
+
+function Profile() {
+  const { data, error, isLoading } = useSWR('/api/user', fetcher, {
+    revalidateOnFocus: true,
+    dedupingInterval: 2000
+  });
+  if (isLoading) return <Skeleton />;
+  if (error) return <Error />;
+  return <User data={data} />;
+}
+```
+
+### 4.2 Stale-While-Revalidate Stratejisi
+
+Önce önbellekten göster, arka planda taze veri çek:
+```typescript
+const { data } = useSWR(key, fetcher, {
+  revalidateOnMount: true,
+  revalidateOnFocus: true,
+  revalidateOnReconnect: true,
+  refreshInterval: 30000  // 30 saniyede bir tazele
+});
+```
+
+### 4.3 Optimistic Updates
+
+İstek atılmış gibi önceden data dön. İsteği arka planda at:
+```typescript
+const { trigger } = useSWRMutation('/api/todos', updateTodo);
+
+async function handleComplete(id) {
+  await trigger(id, {
+    optimisticData: (current) => 
+      current.map(t => t.id === id ? { ...t, done: true } : t),
+    rollbackOnError: true
+  });
+}
+```
+
+### 4.4 Pagination ve Infinite Scroll
+
+Verilerin tamamını çekmek yerine pagination kullan:
+```typescript
+import useSWRInfinite from 'swr/infinite';
+
+function Posts() {
+  const { data, size, setSize } = useSWRInfinite(
+    (index) => `/api/posts?page=${index + 1}`,
+    fetcher
+  );
+  const posts = data ? data.flat() : [];
+  const isLoadingMore = size > 0 && !data[size - 1];
+  return (
+    <>
+      {posts.map(post => <Post key={post.id} {...post} />)}
+      <button onClick={() => setSize(size + 1)} disabled={isLoadingMore}>
+        Daha Fazla Yükle
+      </button>
+    </>
+  );
+}
+```
+
+---
+
+## 5. Re-render Optimizasyonu (ORTA)
+
+### 5.1 React.memo ile Gereksiz Render'ları Önleyin
+
+**Vercel Best Practice:** Props değişmediyse bileşenin yeniden render olmasını engelleyin. Ancak her yerde kullanmayın - sadece gerçekten pahalı render'lar için.
+
+❌ **Yanlış** (her component'i memo ile sarmak):
+```typescript
+// Gereksiz memo - basit component için overhead
+const SimpleButton = memo(function SimpleButton({ label }) {
+  return <button>{label}</button>;
+});
+```
+
+✅ **Doğru** (sadece pahalı render'lar için memo):
+```typescript
+// Pahalı list render - memo mantıklı
+const ExpensiveProductList = memo(function ExpensiveProductList({ products }) {
+  return products.map(product => (
+    <ProductCard 
+      key={product.id} 
+      product={product}
+      // Pahalı hesaplamalar burada
+    />
+  ));
+}, (prevProps, nextProps) => {
+  // Custom comparison - sadece products array değiştiyse re-render
+  return prevProps.products.length === nextProps.products.length &&
+         prevProps.products.every((p, i) => p.id === nextProps.products[i].id);
+});
+
+// Basit component - memo gereksiz
+function SimpleButton({ label, onClick }) {
+  return <button onClick={onClick}>{label}</button>;
+}
+```
+
+**Tauri Desktop App için Özel Notlar:**
+- Desktop app'lerde re-render overhead daha az kritik (network yok)
+- Ama yine de büyük listeler için memo kullan (POS cart, product list)
+- Custom comparison function ile fine-grained control
+
+### 5.2 useMemo ile Pahalı Hesaplamaları Önbelleğe Alın
+
+Her render'da çalışması gerekmeyen hesaplamaları memoize edin:
+```typescript
+const sortedItems = useMemo(() => {
+  console.log('Sorting...');
+  return [...items].sort((a, b) => a.price - b.price);
+}, [items]);  // Sadece items değiştiğinde yeniden hesapla
+
+const filteredAndSorted = useMemo(() => {
+  return items
+    .filter(item => item.inStock)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}, [items]);
+```
+
+### 5.3 useCallback ile Fonksiyon Referanslarını Koruyun
+
+Alt bileşenlere geçirilen fonksiyonların referansını useCallback ile sabitleyin:
+```typescript
+// ❌ Her render'da yeni fonksiyon
+function Parent() {
+  const handleClick = (id) => setSelected(id);
+  return <MemoizedChild onClick={handleClick} />;
+}
+
+// ✅ Referans korunur
+function Parent() {
+  const handleClick = useCallback((id) => {
+    setSelected(id);
+  }, []);
+  return <MemoizedChild onClick={handleClick} />;
+}
+```
+
+### 5.4 State'i Doğru Yerde Tutun
+
+State'i mümkün olan en düşük seviyede tutun. İlgili bileşen kendi state'ini yönetsin.
+
+❌ **Yanlış** (State çok üst bileşende duruyor):
+```typescript
+function App() {
+  const [searchQuery, setSearchQuery] = useState('');
+  return (
+    <>
+      <Header />  {/* searchQuery değişince gereksiz render */}
+      <Sidebar />  {/* searchQuery değişince gereksiz render */}
+      <SearchBox value={searchQuery} onChange={setSearchQuery} />
+      <Results query={searchQuery} />
+    </>
+  );
+}
+```
+
+✅ **Doğru** (State alt bileşende):
+```typescript
+function App() {
+  return (
+    <>
+      <Header />
+      <Sidebar />
+      <SearchSection />  {/* State burada izole */}
+    </>
+  );
+}
+
+function SearchSection() {
+  const [searchQuery, setSearchQuery] = useState('');
+  return (
+    <>
+      <SearchBox value={searchQuery} onChange={setSearchQuery} />
+      <Results query={searchQuery} />
+    </>
+  );
+}
+```
+
+### 5.5 Context Bölme
+
+Farklı hızlarda değişen değerleri ayrı context'lere koyun:
+```typescript
+// ❌ Tek büyük context
+const AppContext = createContext({ user, theme, notifications });
+
+// ✅ Ayrılmış context'ler
+const UserContext = createContext(null);
+const ThemeContext = createContext('light');
+const NotificationContext = createContext([]);
+```
+
+---
+
+## 6. Render Performansı (ORTA)
+
+### 6.1 Virtualization ile Büyük Listeler
+
+react-window veya react-virtualized kullanarak sadece görünür öğeleri render edin:
+```typescript
+import { FixedSizeList } from 'react-window';
+
+function VirtualizedList({ items }) {
+  return (
+    <FixedSizeList
+      height={600}
+      width="100%"
+      itemCount={items.length}
+      itemSize={50}
+    >
+      {({ index, style }) => (
+        <div style={style}>
+          {items[index].name}
+        </div>
+      )}
+    </FixedSizeList>
+  );
+}
+```
+
+### 6.2 Image Optimizasyonu
+
+```typescript
+import Image from 'next/image';
+
+function ProductImage({ src, alt }) {
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      width={400}
+      height={300}
+      placeholder="blur"
+      blurDataURL={shimmer}
+      priority={false}  // Above-the-fold için true
+      loading="lazy"
+    />
+  );
+}
+```
+
+**Temel kurallar:**
+- `width` ve `height` belirtin (layout shift önleme)
+- `priority` prop ile above-the-fold görselleri önceliklendirin
+- `placeholder="blur"` ile düşük kaliteli önizleme gösterin
+- Modern formatlar kullanın: WebP, AVIF
+
+### 6.3 CSS-in-JS Dikkatli Kullanın
+
+CSS-in-JS runtime overhead ekler. Tailwind CSS veya CSS Modules tercih edin.
+
+### 6.4 Layout Shift'i Önleyin
+
+```typescript
+// Skeleton ile alan rezerve edin
+function Card({ isLoading, data }) {
+  if (isLoading) {
+    return <div className="h-48 w-full bg-gray-200 animate-pulse" />;
+  }
+  return <div className="h-48">{data.content}</div>;
+}
+
+// Aspect ratio koruyun
+<div className="aspect-video relative">
+  <Image fill src={src} alt={alt} />
+</div>
+```
+
+---
+
+## 7. JavaScript Performansı (DÜŞÜK-ORTA)
+
+### 7.1 Döngü İterasyon Sayısını Azaltın
+
+Aynı array üzerinde birden fazla geçiş yapmayın.
+
+❌ **Yanlış** (3 ayrı geçiş):
+```typescript
+const filtered = items.filter(x => x.active);
+const mapped = filtered.map(x => transform(x));
+const sorted = mapped.sort((a, b) => a.score - b.score);
+```
+
+✅ **Doğru** (reduce ile filter+map tek geçiş):
+```typescript
+const result = items.reduce((acc, x) => {
+  if (x.active) acc.push(transform(x));
+  return acc;
+}, []).sort((a, b) => a.score - b.score);
+```
+
+### 7.2 Object/Array Lookup Optimize Edin
+
+Map objesi kullanarak arama işlemlerini optimize edin:
+```typescript
+// ❌ Array.find() - O(n)
+const user = users.find(u => u.id === targetId);
+
+// ✅ Map lookup - O(1)
+const userMap = new Map(users.map(u => [u.id, u]));
+const user = userMap.get(targetId);
+
+// ✅ Object lookup - O(1)
+const userById = Object.fromEntries(users.map(u => [u.id, u]));
+const user = userById[targetId];
+```
+
+### 7.3 Debounce ve Throttle
+
+Search işlemleri için use-debounce kullanın:
+```typescript
+import { useDebouncedCallback } from 'use-debounce';
+
+function SearchInput() {
+  const [query, setQuery] = useState('');
+  
+  const debouncedSearch = useDebouncedCallback((value) => {
+    fetchResults(value);
+  }, 300);
+  
+  return (
+    <input
+      value={query}
+      onChange={(e) => {
+        setQuery(e.target.value);
+        debouncedSearch(e.target.value);
+      }}
+    />
+  );
+}
+```
+
+### 7.4 Object Mutation'dan Kaçının
+
+```typescript
+// ❌ Mutation - React değişikliği algılamaz
+state.items.push(newItem);
+setState(state);
+
+// ✅ Immutable update
+setState(prev => ({
+  ...prev,
+  items: [...prev.items, newItem]
+}));
+```
+
+---
+
+## 8. İleri Seviye Patternler
+
+### 8.1 Preloading Kritik Kaynaklar
+
+prefetch kullanarak mouse hover olduğu durumda veriyi çekin:
+```typescript
+// Hover'da prefetch
+import { useRouter } from 'next/navigation';
+
+function Link({ href, children }) {
+  const router = useRouter();
+  
+  return (
+    <a
+      href={href}
+      onMouseEnter={() => router.prefetch(href)}
+      onClick={(e) => {
+        e.preventDefault();
+        router.push(href);
+      }}
+    >
+      {children}
+    </a>
+  );
+}
+```
+
+### 8.2 Font Fallback Ayarlama
+
+Font fallback ayarlayarak en azından yakın fontların yüklenmesini sağlayın:
+```typescript
+// next.config.js
+const { fontFamily } = require('tailwindcss/defaultTheme');
+
+module.exports = {
+  theme: {
+    fontFamily: {
+      sans: ['Inter var', ...fontFamily.sans],
+    },
+  },
+};
+```
+
+```css
+/* Fallback font ayarı */
+@font-face {
+  font-family: 'Inter';
+  src: url('/fonts/Inter.woff2') format('woff2');
+  font-display: swap;
+  size-adjust: 100%;
+  ascent-override: 90%;
+  descent-override: 20%;
+  line-gap-override: 0%;
+}
+```
+
+### 8.3 React Compiler (React 19+)
+
+React Compiler, useMemo ve useCallback'i otomatik olarak arka planda kodunuza ekler:
+```javascript
+// babel.config.js
+module.exports = {
+  plugins: [
+    ['babel-plugin-react-compiler', {
+      // compiler options
+    }]
+  ]
+};
+```
+
+### 8.4 Web Workers ile Ağır İşlemler
+
+```typescript
+// worker.js
+self.onmessage = (e) => {
+  const result = heavyComputation(e.data);
+  self.postMessage(result);
+};
+
+// Component
+function DataProcessor() {
+  const [result, setResult] = useState(null);
+  
+  useEffect(() => {
+    const worker = new Worker(new URL('./worker.js', import.meta.url));
+    worker.postMessage(largeData);
+    worker.onmessage = (e) => setResult(e.data);
+    return () => worker.terminate();
+  }, []);
+  
+  return <div>{result}</div>;
+}
+```
+
+### 8.5 Intersection Observer ile Lazy Render
+
+```typescript
+function LazyComponent({ children }) {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px' }
+    );
+    
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  
+  return <div ref={ref}>{isVisible ? children : <Placeholder />}</div>;
+}
+```
+
+---
+
+## Öncelik Tablosu
+
+1. **KRİTİK:** Waterfall'ları ortadan kaldırma
+2. **KRİTİK:** Bundle boyutu optimizasyonu
+3. **YÜKSEK:** Sunucu tarafı performansı
+4. **ORTA-YÜKSEK:** Client-side veri çekme
+5. **ORTA:** Re-render optimizasyonu
+6. **ORTA:** Render performansı
+7. **DÜŞÜK-ORTA:** JavaScript performansı
+
+---
+
+## Ölçme ve Test
+
+**Ölçmeden optimize etme:**
+- React DevTools Profiler
+- Lighthouse
+- Bundle analyzer
+- Network tab
+
+Tahmin etme, ölç. Bazen "yavaş" sandığınız şey aslında sorun değil.
+
+---
+
+## Sonuç
+
+**Üç şeyi aklımızda tutalım:**
+
+1. **Sırayla git:** Waterfall → Bundle → Server → Client → Re-render. Bu sıra rastgele değil, gerçek metrikleri en çok etkileyen şeylerden başlıyor.
+
+2. **Ölçmeden optimize etme:** React DevTools Profiler, Lighthouse, bundle analyzer. Tahmin etme, ölç. Bazen "yavaş" sandığınız şey aslında sorun değil.
+
+3. **Her hook'u her yere koyma:** `useCallback` ve `useMemo` bedava değil. Gereksiz yerde kullanmak kodu hem karmaşıklaştırır hem yavaşlatır.
+
+Ve eğer React 19+ kullanıyorsanız, React Compiler bu kararların çoğunu senin yerine verecek. Ama o zamana kadar, bu kurallar iyi bir pusula.
+
+---
+
+## 📚 Vercel Labs React Best Practices Entegrasyonu
+
+**Referans:** [Vercel Labs Agent Skills - React Best Practices](https://github.com/vercel-labs/agent-skills/tree/main/skills/react-best-practices)
+
+**Bu dosya Vercel Labs'ın React Best Practices skill'inden esinlenilerek oluşturulmuştur ve Tauri Desktop App için uyarlanmıştır.**
+
+### Temel Prensipler
+
+- ✅ **Öncelik Sırası:** Critical → High → Medium → Low (Vercel'in önerdiği sıra)
+- ✅ **Kategori Bazlı:** 8 kategori (Waterfall, Bundle, Server, Client, Re-render, vb.)
+- ✅ **Pratik Örnekler:** Her kural için doğru/yanlış örnekler (Vercel pattern'i)
+- ✅ **Tauri Uyarlaması:** Desktop app için özel notlar ve optimizasyonlar
+
+### Vercel Best Practices'ten Eklenenler
+
+1. ✅ **Route-based code splitting** (Tauri için uyarlanmış - Section 2.3)
+2. ✅ **Bundle analyzer setup** (Vite için - Section 2.4)
+3. ✅ **Client-only libraries lazy loading** (Section 2.5)
+4. ✅ **React.memo best practices** (Ne zaman kullanılmalı - Section 5.1)
+5. ✅ **Component-level optimizations** (Section 5)
+
+### Roadmap Entegrasyonu
+
+- Bu kurallar `roadmap.mdc`'deki **Performance Optimization** (P3.4) ile uyumludur
+- UI Refactor (P3.3) sırasında bu kurallar özellikle önemlidir
+- Bundle size optimization roadmap'te belirtilmiştir (< 500KB hedef)
+
+### Tauri Desktop App Özel Notları
+
+**Vercel'in web app odaklı kuralları Tauri için uyarlanmıştır:**
+
+- **Route-based splitting:** Desktop app'lerde initial bundle size kritik (ilk açılış hızı)
+- **Bundle analyzer:** Vite + rollup-plugin-visualizer kullanılmalı
+- **Lazy loading:** Network latency yok ama initial bundle size önemli
+- **Re-render optimization:** Desktop app'lerde daha az kritik ama büyük listeler için önemli
+
+### Kullanım
+
+**Kod yazarken:**
+1. Bu dosyadaki kuralları takip et
+2. Vercel'in öncelik sırasını uygula (Waterfall → Bundle → Server → Client → Re-render)
+3. Tauri Desktop App için özel notları dikkate al
+4. Bundle analyzer ile ölçüm yap (tahmin etme, ölç)
+
+**Roadmap ile uyum:**
+- Performance Optimization (P3.4) sırasında bu kurallar uygulanmalı
+- UI Refactor (P3.3) sırasında bundle size ve lazy loading önemli
+- Test Infrastructure (P3.1) sonrası bu optimizasyonlar yapılabilir

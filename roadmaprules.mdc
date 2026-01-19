@@ -1,0 +1,368 @@
+---
+alwaysApply: true
+---
+
+# omniMarketMvp - Master Roadmap Rules
+
+**Bu dosya her zaman uygulanır. Roadmap'e göre çalış.**
+
+**Roadmap Dosyası:** `_bmad-output/planning-artifacts/roadmap.mdc`
+
+---
+
+## 🎯 Öncelik Sırası (Her Zaman Takip Et)
+
+### 1. 🔴 P0 (CRITICAL) - Güvenlik ve Temel İşlevsellik
+**Durum:** ✅ **TAMAMLANDI** (2026-01-18)
+
+**Tamamlanan İşler:**
+- ✅ Rate Limiting (C1)
+- ✅ Timing Attack Protection (C2)
+- ✅ Backend PIN Validation (C3)
+- ✅ Session Storage Security (C4)
+- ✅ Race Condition Fixes (C5)
+- ✅ User Enumeration Prevention (C6)
+- ✅ Unsafe unwrap() Fixes (C7)
+- ✅ Input Sanitization (C8)
+
+### 2. 🔴 P1 (HIGH) - Code Quality & Performance
+**Durum:** ✅ **TAMAMLANDI** (2026-01-18)
+
+**Tamamlanan İşler:**
+- ✅ Backend Role Validation
+- ✅ React Hook Compliance
+- ✅ setTimeout Cleanup
+- ✅ i18n Tutarlılığı
+- ✅ N+1 Query Problem Fixes
+- ✅ Missing Database Indexes
+
+### 3. 🔴 P2 (MEDIUM) - Code Quality Improvements
+**Durum:** ✅ **TAMAMLANDI** (2026-01-18)
+
+**Tamamlanan İşler:**
+- ✅ Console.log Cleanup
+- ✅ Type Safety İyileştirmeleri
+- ✅ Magic Numbers Extraction
+- ✅ Code Style Standardization
+
+### 4. 🔴 P3 (HIGH) - Üretim Hazırlığı (ŞU ANKİ ÖNCELİK)
+
+#### 4.1 Test Infrastructure (KRİTİK - EN YÜKSEK ÖNCELİK)
+**Durum:** 🔴 **YAPILMADI**  
+**Tahmini Süre:** 1-2 hafta (15-20 saat)
+
+**Aksiyonlar:**
+- [ ] Test framework setup (Vitest + React Testing Library)
+- [ ] Critical path tests (authentication, POS, stock)
+- [ ] Integration tests (Tauri commands)
+- [ ] Test coverage: %0 → %60+
+
+**Başarı Kriterleri:**
+- ✅ Test coverage: %60+
+- ✅ Critical path tests: 100% coverage
+- ✅ CI/CD integration
+
+#### 4.2 Documentation Improvements
+**Durum:** 🟡 **KISMEN YAPILDI**  
+**Tahmini Süre:** 1 hafta (8-10 saat)
+
+**Aksiyonlar:**
+- [ ] API documentation (Tauri commands)
+- [ ] Component documentation (JSDoc)
+- [ ] Architecture decision records (ADR)
+- [ ] User guide (Türkçe)
+
+#### 4.3 UI Refactor (Tam Frontend Yenileme) - KRİTİK: Kullanıcı Deneyimi
+**Durum:** 🔴 **YAPILMADI**  
+**Tahmini Süre:** 4-6 hafta (60-80 saat)
+
+**Referanslar:**
+- Design Source: `stitch_main_pos_terminal_screen/` klasörü
+- UI Refresh Plan: `_bmad-output/planning-artifacts/ui-refresh-plan-incremental.md`
+- Design System Guide: `stitch_main_pos_terminal_screen/omni-panel_design_system_guide/`
+- Brand Identity: `stitch_main_pos_terminal_screen/omni-panel_brand_identity_&_icons/`
+
+**6 Fazlı Plan:**
+1. **Phase 1: Design System Foundation** (1 hafta)
+   - Tailwind CSS kurulumu
+   - Material Symbols font
+   - Design tokens oluşturma
+   - Color palette extraction
+
+2. **Phase 2: Core Components Refresh** (1.5 hafta)
+   - Header, Sidebar, Button, Input components
+   - Modal, Dialog, Toast components
+   - Component library oluşturma
+
+3. **Phase 3: POS Screen Complete Refactor** (1.5 hafta)
+   - POS header refresh
+   - Search & Categories column
+   - Cart column (table, items, actions)
+   - Payment column (customer, summary, payment)
+
+4. **Phase 4: Owner Dashboard & Pages** (1 hafta)
+   - Dashboard refresh (KPI cards, charts)
+   - Products Page refresh
+   - Stock Page refresh
+   - Sales History Page refresh
+   - Users Page refresh
+
+5. **Phase 5: Login & Auth Screens** (0.5 hafta)
+   - Login page refresh
+   - Splash screen (if applicable)
+   - Error states & empty states
+
+6. **Phase 6: Additional Screens** (1 hafta)
+   - Product Management screens
+   - Stock Management screens
+   - Settings screens (if applicable)
+   - Receipt preview screen
+
+**Başarı Kriterleri:**
+- ✅ Tüm ekranlar stitch design'larına uygun
+- ✅ Design system tutarlılığı: %100
+- ✅ Dark mode: Tam destek
+- ✅ Performance: Bundle size < 500KB
+- ✅ Accessibility: WCAG 2.1 AA
+
+#### 4.4 Performance Optimization
+**Durum:** 🟡 **KISMEN YAPILDI**  
+**Tahmini Süre:** 1 hafta (8-10 saat)
+
+**Aksiyonlar:**
+- [ ] Bundle size optimization
+- [ ] Code splitting (route-based)
+- [ ] Image optimization
+- [ ] Database query optimization (remaining)
+
+---
+
+## 🔄 Süreç Döngüsü (Her Zaman Takip Et)
+
+### Geliştirme Döngüsü
+
+```
+1. PLANLAMA (Planning)
+   ├─ Epic/Story seçimi
+   ├─ Acceptance criteria review
+   ├─ Technical design
+   └─ Task breakdown
+
+2. GELİŞTİRME (Development)
+   ├─ Feature implementation
+   ├─ Code review (self)
+   ├─ Local testing
+   └─ Documentation update
+
+3. KALİTE KONTROLÜ (Quality Gate)
+   ├─ Type checking (npm run typecheck)
+   ├─ Rust check (cargo check)
+   ├─ Smoke test (npm run tauri dev)
+   └─ Manual testing
+
+4. COMMIT & PUSH
+   ├─ Git commit (conventional commits)
+   ├─ Git push
+   └─ Status update
+
+5. AUDIT & HARDENING (Periyodik)
+   ├─ Codebase audit (@codebase audit)
+   ├─ Security review
+   ├─ Performance analysis
+   └─ Technical debt review
+
+6. RETROSPECTIVE (Periyodik)
+   ├─ Epic retrospective
+   ├─ Process improvement
+   ├─ Lessons learned
+   └─ Roadmap update
+```
+
+### Kalite Kapıları (Quality Gates)
+
+**Her commit öncesi:**
+1. ✅ `npm run typecheck` - TypeScript type checking
+2. ✅ `cargo check` - Rust compilation check
+3. ✅ `npm run tauri dev` - Smoke test (15 saniye, panic check)
+
+**Her epic sonrası:**
+1. ✅ Code review (adversarial mode)
+2. ✅ Security audit
+3. ✅ Performance analysis
+4. ✅ Documentation review
+
+---
+
+## 📋 Epic Durum Özeti
+
+| Epic | Durum | Stories | Tamamlanma |
+|------|-------|---------|------------|
+| Epic 1: Sistem Kurulumu | ✅ **TAMAMLANDI** | 5/5 | 100% |
+| Epic 2: Kimlik Doğrulama | ✅ **TAMAMLANDI** | 5/5 | 100% |
+| Epic 3: Ürün Yönetimi | ✅ **TAMAMLANDI** | 5/5 | 100% |
+| Epic 4: Stok Yönetimi | ✅ **TAMAMLANDI** | 5/5 | 100% |
+| Epic 5: POS İşlemleri | ✅ **TAMAMLANDI** | 5/5 | 100% |
+| Epic 6: Dashboard | ✅ **TAMAMLANDI** | 5/5 | 100% |
+| Epic 7: Export & Backup | ⚠️ **IN-PROGRESS** | 4/5 | 80% |
+| Epic 8: Lokalizasyon | ✅ **TAMAMLANDI** | 2/2 | 100% |
+
+**Toplam:** 7 epic tamamlandı, 1 epic in-progress, **36/37 story tamamlandı**
+
+---
+
+## 🎯 Şu Anki Öncelikler (2026-01-18)
+
+1. 🔴 **Test Infrastructure** (Hafta 1-2) - EN YÜKSEK ÖNCELİK
+2. 🟡 **Documentation Improvements** (Hafta 3)
+3. 🔴 **UI Refactor** (Hafta 4-9) - KRİTİK: Kullanıcı Deneyimi
+4. 🟡 **Performance Optimization** (Hafta 10)
+
+**Hedef:** Üretim hazırlık kriterlerine ulaşmak (10 hafta içinde)
+
+---
+
+## 📚 Referanslar (Her Zaman Kontrol Et)
+
+### Dokümantasyon
+- **Roadmap:** `_bmad-output/planning-artifacts/roadmap.mdc` ⭐ **ANA REFERANS**
+- **PRD:** `_bmad-output/planning-artifacts/prd.md`
+- **Architecture:** `_bmad-output/planning-artifacts/architecture.md`
+- **Epics:** `_bmad-output/planning-artifacts/epics.md`
+- **Audit Report:** `_bmad-output/planning-artifacts/codebase-audit-report.md`
+- **UI Refresh Plan:** `_bmad-output/planning-artifacts/ui-refresh-plan-incremental.md`
+
+### Design Referansları
+- **Design Source:** `stitch_main_pos_terminal_screen/` klasörü
+  - `main_pos_terminal_screen_1/code.html` - Ana POS tasarımı
+  - `main_pos_terminal_screen_2/code.html` - Alternatif POS tasarımı
+  - `pos_login_/code.html` - Login ekranı tasarımı
+  - `owner_dashboard_overview/code.html` - Dashboard tasarımı
+  - `product_management_table/code.html` - Ürün yönetimi tasarımı
+  - `stock_inventory_tracking/code.html` - Stok takibi tasarımı
+  - `omni-panel_design_system_guide/` - Design system rehberi
+  - `omni-panel_brand_identity_&_icons/` - Brand identity ve icon'lar
+
+### Workflow'lar ve Agent'lar
+- **BMad Master Agent:** `@_bmad/core/agents/bmad-master.md`
+- **Party Mode Workflow:** `@_bmad/core/workflows/party-mode/workflow.md`
+- **Document Project:** `@_bmad/bmm/workflows/document-project`
+- **Codebase Audit:** `@codebase audit`
+- **Cleanup Plan:** `@_bmad/bmm/workflows/cleanup-plan`
+
+---
+
+## ⚠️ Kritik Kurallar
+
+### 1. Öncelik Sırasına Uy
+- P0 → P1 → P2 → P3 sırasını takip et
+- Şu anki öncelik: **Test Infrastructure** (P3.1)
+
+### 2. Süreç Döngüsüne Uy
+- Her adımda quality gate'leri çalıştır
+- Commit öncesi mutlaka typecheck, cargo check, smoke test
+
+### 3. Roadmap'e Göre Çalış
+- Yeni özellik eklerken roadmap'i kontrol et
+- Epic durumunu güncelle
+- Tamamlanan işleri işaretle
+
+### 4. Design System'e Uy (UI Refactor sırasında)
+- Tailwind CSS utility classes kullan
+- Design token'ları kullan
+- Component library'den component'leri kullan
+- Stitch design'larına uy
+
+### 5. Verimlilik İyileştirmeleri
+- Her düzenleme sonrası öğrenilen dersleri dokümante et
+- Pattern'leri template'lere ekle
+- Otomasyon fırsatlarını değerlendir
+
+---
+
+## 🚀 Hızlı Başlangıç
+
+### "Başla" Komutu (Otomatik Başlangıç)
+
+**Kullanıcı "başla" dediğinde sistem otomatik olarak:**
+
+1. ✅ Roadmap'i kontrol et (`roadmap.mdc`) - Şu anki önceliği belirle
+2. ✅ Epic durumunu kontrol et - Hangi epic'ler tamamlandı?
+3. ✅ İlgili senaryoyu seç (Test Infrastructure, UI Refactor, Documentation, Performance)
+4. ✅ İlgili dosyaları kontrol et
+5. ✅ İlgili workflow'ları belirle
+6. ✅ İlk adımları göster
+
+**Referans:** `start-guide.mdc` - Otomatik başlangıç senaryoları
+
+**Şu Anki Öncelik (2026-01-18):**
+1. 🔴 **Test Infrastructure** (P3.1) - EN YÜKSEK ÖNCELİK
+2. 🔴 **UI Refactor** (P3.3) - KRİTİK: Kullanıcı Deneyimi
+3. 🟡 **Documentation Improvements** (P3.2)
+4. 🟡 **Performance Optimization** (P3.4)
+
+---
+
+### "Devam Et" Komutu (Otomatik Devam)
+
+**Kullanıcı "devam et" dediğinde sistem otomatik olarak:**
+
+1. ✅ Son yapılan işi kontrol et (roadmap, epic, story)
+2. ✅ Epic durumunu kontrol et (tamamlandı mı? in-progress mi?)
+3. ✅ Story durumunu kontrol et (acceptance criteria tamamlandı mı?)
+4. ✅ Workflow durumunu kontrol et (yarıda kaldı mı?)
+5. ✅ Bir sonraki adımı belirle (epic, story, workflow)
+6. ✅ İlgili dosyaları kontrol et (story file, code review, planning artifacts)
+7. ✅ İlgili workflow'u devam ettir veya başlat
+
+**Referans:** `start-guide.mdc` - "Devam Et" komutu senaryoları
+
+**Senaryolar:**
+- Epic in-progress → Epic'e devam et
+- Story in-progress → Story'ye devam et
+- Workflow yarıda kaldı → Workflow'u `--resume` ile devam ettir
+- İş tamamlandı → Bir sonraki öncelikli işe geç
+
+---
+
+**Yeni bir özellik eklerken:**
+1. Development checklist çalıştır: `npm run dev:checklist`
+2. Roadmap'i kontrol et (`_bmad-output/planning-artifacts/roadmap.mdc`) ⭐ ZORUNLU
+3. Öncelik sırasını kontrol et (yukarıdaki tablo)
+4. Epic durumunu kontrol et
+5. Süreç döngüsünü takip et (`development-workflow.mdc`)
+6. Quality gate'leri çalıştır: `npm run dev:gates`
+7. Roadmap'i güncelle
+
+**UI Refactor yaparken:**
+1. `stitch_main_pos_terminal_screen/` klasöründen design'ı incele
+2. Design system guide'ı kontrol et
+3. Component library'den mevcut component'leri kullan
+4. Tailwind utility classes kullan
+5. Design token'ları kullan
+
+---
+
+## 🔄 Sistemsel Kod Yazma Süreci
+
+**Her kod yazma işleminde:**
+1. **PRE-CODE:** 
+   - `development-workflow.mdc` - Kod yazmadan önce kontrol
+   - `bmad-context-checker.mdc` - Kategorize edilmiş BMad context kontrolü
+2. **DURING-CODE:** Rules'lara uy (roadmaprules, reactrules, mvprules)
+3. **POST-CODE:** Quality gates çalıştır (`npm run dev:gates`)
+
+**Otomatik Kontroller:**
+- `npm run dev:checklist` - Pre-code checklist (roadmap + BMad context)
+- `npm run dev:gates` - Post-code quality gates
+- `npm run mvp:check` - Quick check (typecheck + cargo check)
+
+**BMad Context Kontrolü (Kategorize Edilmiş):**
+- **Planning Artifacts:** roadmap, prd, epics, architecture (feature ekleme)
+- **Implementation Artifacts:** story files, code reviews (story implementation)
+- **Core Documentation:** API contracts, data models, components (backend/frontend değişikliği)
+- **BMad Workflows:** İlgili workflow'ları çalıştır (gerekirse)
+
+---
+
+**Son Güncelleme:** 2026-01-18  
+**Roadmap Versiyon:** 1.0.0

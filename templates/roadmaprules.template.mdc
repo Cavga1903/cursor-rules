@@ -1,0 +1,115 @@
+---
+alwaysApply: true
+---
+
+# Your Project Name - Master Roadmap Rules
+
+**Bu dosya her zaman uygulanır. Roadmap'e göre çalış.**
+
+**Roadmap Dosyası:** `_bmad-output/planning-artifacts/roadmap.mdc` (güncelleyin)
+
+---
+
+## 🎯 Öncelik Sırası (Her Zaman Takip Et)
+
+### 1. 🔴 P0 (CRITICAL) - Güvenlik ve Temel İşlevsellik
+**Durum:** 🔴 **YAPILMADI**
+
+**Aksiyonlar:**
+- [ ] Security audit
+- [ ] Input validation
+- [ ] Authentication/Authorization
+
+### 2. 🔴 P1 (HIGH) - Code Quality & Performance
+**Durum:** 🔴 **YAPILMADI**
+
+**Aksiyonlar:**
+- [ ] Code quality improvements
+- [ ] Performance optimization
+- [ ] Database optimization
+
+### 3. 🔴 P2 (MEDIUM) - Code Quality Improvements
+**Durum:** 🔴 **YAPILMADI**
+
+**Aksiyonlar:**
+- [ ] Code style standardization
+- [ ] Type safety improvements
+- [ ] Documentation
+
+### 4. 🔴 P3 (HIGH) - Üretim Hazırlığı
+**Durum:** 🔴 **YAPILMADI**
+
+**Aksiyonlar:**
+- [ ] Test Infrastructure
+- [ ] Documentation Improvements
+- [ ] UI Refactor
+- [ ] Performance Optimization
+
+---
+
+## 🔄 Süreç Döngüsü (Her Zaman Takip Et)
+
+### Geliştirme Döngüsü
+
+```
+1. PLANLAMA (Planning)
+   ├─ Epic/Story seçimi
+   ├─ Acceptance criteria review
+   ├─ Technical design
+   └─ Task breakdown
+
+2. GELİŞTİRME (Development)
+   ├─ Feature implementation
+   ├─ Code review (self)
+   ├─ Local testing
+   └─ Documentation update
+
+3. KALİTE KONTROLÜ (Quality Gate)
+   ├─ Type checking
+   ├─ Compilation check
+   ├─ Smoke test
+   └─ Manual testing
+
+4. COMMIT & PUSH
+   ├─ Git commit (conventional commits)
+   ├─ Git push
+   └─ Status update
+```
+
+---
+
+## 📋 Epic Durum Özeti
+
+| Epic | Durum | Stories | Tamamlanma |
+|---|----|---|---|
+| Epic 1: [Name] | 🔴 **YAPILMADI** | 0/0 | 0% |
+
+---
+
+## 🎯 Şu Anki Öncelikler
+
+1. 🔴 **P0 - Security** - EN YÜKSEK ÖNCELİK
+2. 🔴 **P1 - Code Quality** - YÜKSEK ÖNCELİK
+3. 🔴 **P2 - Code Quality Improvements** - ORTA ÖNCELİK
+4. 🔴 **P3 - Production Readiness** - ÜRETİM HAZIRLIĞI
+
+---
+
+## ⚠️ Kritik Kurallar
+
+### 1. Öncelik Sırasına Uy
+- P0 → P1 → P2 → P3 sırasını takip et
+
+### 2. Süreç Döngüsüne Uy
+- Her adımda quality gate'leri çalıştır
+- Commit öncesi mutlaka typecheck, compilation check, smoke test
+
+### 3. Roadmap'e Göre Çalış
+- Yeni özellik eklerken roadmap'i kontrol et
+- Epic durumunu güncelle
+- Tamamlanan işleri işaretle
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

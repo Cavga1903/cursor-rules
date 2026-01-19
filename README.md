@@ -53,7 +53,19 @@ cp -r /path/to/cursor-rules/* .cursor/rules/
 ```
 cursor-rules/
 ├── README.md
+├── LICENSE
+├── CHANGELOG.md
+├── VERSION
+├── CONTRIBUTING.md
+├── SETUP.md
 ├── .gitignore
+├── .gitattributes
+├── .github/
+│   └── workflows/
+│       └── ci.yml           # CI/CD workflow
+├── templates/
+│   ├── mvprules.template.mdc      # MVP rules template
+│   └── roadmaprules.template.mdc   # Roadmap rules template
 ├── roadmaprules.mdc          # Master roadmap rules
 ├── development-workflow.mdc   # Development workflow
 ├── reactrules.mdc            # React best practices
@@ -67,7 +79,11 @@ cursor-rules/
 
 ### Yeni Proje İçin Uyarlama
 
-1. **Proje-Specific Rules'ı Güncelle:**
+1. **Template Dosyalarını Kullan:**
+   - `templates/mvprules.template.mdc` - MVP rules template'ini kopyalayıp özelleştirin
+   - `templates/roadmaprules.template.mdc` - Roadmap rules template'ini kopyalayıp özelleştirin
+
+2. **Proje-Specific Rules'ı Güncelle:**
    - `mvprules.mdc` - Proje adını, MVP kurallarını güncelle
    - `roadmaprules.mdc` - Proje roadmap'ini güncelle
    - `bmad-context-checker.mdc` - BMad klasör yapısını güncelle (eğer kullanıyorsanız)
@@ -164,6 +180,9 @@ git submodule update --remote .cursor/rules
 
 ## 🤝 Katkıda Bulunma
 
+Detaylı katkı rehberi için [CONTRIBUTING.md](CONTRIBUTING.md) dosyasına bakın.
+
+Kısa özet:
 1. Fork yapın
 2. Feature branch oluşturun (`git checkout -b feature/amazing-rule`)
 3. Değişikliklerinizi commit edin (`git commit -m 'Add amazing rule'`)

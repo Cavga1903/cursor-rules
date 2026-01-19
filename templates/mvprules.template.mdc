@@ -1,0 +1,89 @@
+---
+alwaysApply: false
+---
+# Your Project Name — MVP Rules (LAW)
+
+> ⚠️ **ÖNEMLİ:** Bu dosya MVP kurallarını içerir. Ayrıca `roadmaprules.mdc` dosyasını da kontrol et - roadmap önceliklerine uy.
+
+> 📋 **Roadmap Referansı:** `_bmad-output/planning-artifacts/roadmap.mdc` - Şu anki öncelik: **Test Infrastructure** (P3.1) ve **UI Refactor** (P3.3)
+
+## (0) MVP North Star
+If it doesn't help **[your core features here]**, it is OUT.
+
+---
+
+## (1) Surfaces & Navigation Contract
+
+### Surfaces (HARD)
+- **SURFACE_1** (`/path1`): description
+- **SURFACE_2** (`/path2`): description
+- **AUTH** (`/login`): unlock identity only
+
+### Single Navigation Rule
+- ONE global nav per role.
+- No page-level duplicate nav (tabs/quick-actions that behave like nav are forbidden).
+
+### Page Naming (FIX)
+- Use consistent naming conventions
+- Follow your project's naming standards
+
+---
+
+## (2) UI Consistency Rules
+
+### Design System
+- Use design tokens from `src/design-tokens.ts`
+- Follow Tailwind CSS utility classes
+- Material Symbols font for icons
+
+### Component Library
+- Use components from component library
+- Avoid custom CSS when possible
+- Follow accessibility guidelines (WCAG 2.1 AA)
+
+---
+
+## (3) Code Quality Rules
+
+### Type Safety
+- No `any` types
+- Proper TypeScript types
+- Input validation
+
+### Error Handling
+- Try-catch blocks
+- Result types
+- User-friendly error messages
+
+### Performance
+- Bundle size < 500KB
+- Route-based code splitting
+- Lazy loading for heavy components
+
+---
+
+## (4) Security Rules
+
+### Authentication
+- Backend role validation
+- Session security (sessionStorage, TTL)
+- Rate limiting for sensitive operations
+
+### Input Validation
+- Frontend + Backend validation
+- Input sanitization
+- SQL injection prevention
+
+---
+
+## (5) Testing Rules
+
+### Test Coverage
+- Target: %60+ coverage
+- Critical path: 100% coverage
+- Integration tests for Tauri commands
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

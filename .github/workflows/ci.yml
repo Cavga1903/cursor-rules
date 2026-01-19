@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Check file structure
+      run: |
+        echo "Checking required files..."
+        test -f README.md || exit 1
+        test -f LICENSE || exit 1
+        test -f CHANGELOG.md || exit 1
+        test -f VERSION || exit 1
+        echo "✅ All required files present"
+    
+    - name: Validate .mdc files
+      run: |
+        echo "Validating .mdc files..."
+        for file in *.mdc; do
+          if [ -f "$file" ]; then
+            echo "Checking $file..."
+            # Check if file has frontmatter
+            head -1 "$file" | grep -q "^---$" || echo "⚠️  $file might be missing frontmatter"
+          fi
+        done
+        echo "✅ File validation complete"
+    
+    - name: Check symlinks
+      run: |
+        echo "Checking for symlinks..."
+        find . -type l | while read link; do
+          echo "Found symlink: $link"
+        done

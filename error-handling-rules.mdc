@@ -1,0 +1,501 @@
+---
+alwaysApply: true
+---
+
+# Error Handling Rules - Hata Yönetimi Best Practices
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. Hata yönetimi kullanıcı deneyimi ve sistem güvenilirliği için kritiktir.
+
+---
+
+## 🎯 Error Handling Stratejisi
+
+### 1. Error Types
+
+**Error Kategorileri:**
+- **User Errors** - Kullanıcı hatası (validation, input)
+- **System Errors** - Sistem hatası (network, database)
+- **Programming Errors** - Programlama hatası (bugs, type errors)
+
+---
+
+### 2. Error Handling Hierarchy
+
+```
+User Action
+    ↓
+Frontend Validation (UX)
+    ↓
+API Call
+    ↓
+Backend Validation (Security)
+    ↓
+Business Logic
+    ↓
+Database
+    ↓
+Error Response
+    ↓
+Frontend Error Handling
+    ↓
+User Feedback
+```
+
+---
+
+## 🛡️ Frontend Error Handling
+
+### 1. Try-Catch Blocks
+
+**❌ Yanlış (Error handling yok):**
+```typescript
+async function fetchUser(id: string) {
+  const user = await invoke("get_user", { id });
+  return user.name;  // Error durumunda crash
+}
+```
+
+**✅ Doğru (Error handling):**
+```typescript
+async function fetchUser(id: string): Promise<string> {
+  try {
+    const user = await invoke<User>("get_user", { id });
+    return user.name;
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error("Failed to fetch user:", error.message);
+      throw new Error(`User not found: ${id}`);
+    }
+    throw error;
+  }
+}
+```
+
+---
+
+### 2. Result Type Pattern
+
+**✅ Doğru (Result type):**
+```typescript
+type Result<T, E = Error> = 
+  | { success: true; data: T }
+  | { success: false; error: E };
+
+async function fetchUser(id: string): Promise<Result<User>> {
+  try {
+    const user = await invoke<User>("get_user", { id });
+    return { success: true, data: user };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error : new Error("Unknown error"),
+    };
+  }
+}
+
+// Kullanım
+const result = await fetchUser("123");
+if (result.success) {
+  console.log(result.data.name);
+} else {
+  console.error(result.error.message);
+}
+```
+
+---
+
+### 3. Error Boundaries (React)
+
+**✅ Doğru (Error Boundary):**
+```typescript
+import { Component, ErrorInfo, ReactNode } from "react";
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): State {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.error("Error caught by boundary:", error, errorInfo);
+    // Error logging service'e gönder
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div>
+          <h2>Something went wrong</h2>
+          <p>{this.state.error?.message}</p>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
+// Kullanım
+<ErrorBoundary fallback={<ErrorFallback />}>
+  <App />
+</ErrorBoundary>
+```
+
+---
+
+## 🔧 Backend Error Handling
+
+### 1. Result Type (Rust)
+
+**✅ Doğru (Rust Result type):**
+```rust
+use std::result::Result;
+
+#[tauri::command]
+fn get_user(id: String) -> Result<User, String> {
+  // Validation
+  if id.is_empty() {
+    return Err("User ID cannot be empty".to_string());
+  }
+  
+  // Database query
+  let user = db.get_user(&id)
+    .map_err(|e| format!("Database error: {}", e))?;
+  
+  // Business logic
+  if user.is_deleted {
+    return Err("User not found".to_string());
+  }
+  
+  Ok(user)
+}
+```
+
+---
+
+### 2. Custom Error Types
+
+**✅ Doğru (Custom error enum):**
+```rust
+#[derive(Debug)]
+enum AppError {
+  NotFound(String),
+  Validation(String),
+  Database(String),
+  Unauthorized,
+}
+
+impl std::fmt::Display for AppError {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    match self {
+      AppError::NotFound(msg) => write!(f, "Not found: {}", msg),
+      AppError::Validation(msg) => write!(f, "Validation error: {}", msg),
+      AppError::Database(msg) => write!(f, "Database error: {}", msg),
+      AppError::Unauthorized => write!(f, "Unauthorized"),
+    }
+  }
+}
+
+#[tauri::command]
+fn get_user(id: String) -> Result<User, AppError> {
+  if id.is_empty() {
+    return Err(AppError::Validation("User ID cannot be empty".to_string()));
+  }
+  
+  let user = db.get_user(&id)
+    .map_err(|e| AppError::Database(e.to_string()))?;
+  
+  if user.is_none() {
+    return Err(AppError::NotFound(format!("User {} not found", id)));
+  }
+  
+  Ok(user.unwrap())
+}
+```
+
+---
+
+## 📝 Error Messages
+
+### 1. User-Friendly Messages
+
+**❌ Yanlış (Technical error):**
+```typescript
+throw new Error("SQLITE_CONSTRAINT: UNIQUE constraint failed: users.email");
+```
+
+**✅ Doğru (User-friendly):**
+```typescript
+throw new Error("This email is already registered. Please use a different email.");
+```
+
+---
+
+### 2. Error Message Structure
+
+**✅ Doğru (Structured error):**
+```typescript
+interface AppError {
+  code: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+function createError(
+  code: string,
+  message: string,
+  details?: Record<string, unknown>
+): AppError {
+  return { code, message, details };
+}
+
+// Kullanım
+throw createError(
+  "VALIDATION_ERROR",
+  "Invalid email format",
+  { field: "email", value: userInput }
+);
+```
+
+---
+
+## 🔄 Error Recovery
+
+### 1. Retry Logic
+
+**✅ Doğru (Exponential backoff):**
+```typescript
+async function fetchWithRetry<T>(
+  fn: () => Promise<T>,
+  maxRetries = 3
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error("Unknown error");
+      
+      // Exponential backoff
+      const delay = Math.pow(2, i) * 1000; // 1s, 2s, 4s
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError!;
+}
+
+// Kullanım
+const data = await fetchWithRetry(() => invoke("get_data"));
+```
+
+---
+
+### 2. Fallback Values
+
+**✅ Doğru (Fallback):**
+```typescript
+async function getUserName(id: string): Promise<string> {
+  try {
+    const user = await invoke<User>("get_user", { id });
+    return user.name;
+  } catch (error) {
+    console.error("Failed to fetch user:", error);
+    return "Unknown User";  // Fallback value
+  }
+}
+```
+
+---
+
+## 📊 Error Logging
+
+### 1. Structured Logging
+
+**✅ Doğru (Structured logging):**
+```typescript
+interface LogEntry {
+  level: "error" | "warn" | "info";
+  message: string;
+  error?: Error;
+  context?: Record<string, unknown>;
+  timestamp: string;
+}
+
+function logError(
+  message: string,
+  error?: Error,
+  context?: Record<string, unknown>
+) {
+  const entry: LogEntry = {
+    level: "error",
+    message,
+    error,
+    context,
+    timestamp: new Date().toISOString(),
+  };
+  
+  // Console (development)
+  if (process.env.NODE_ENV === "development") {
+    console.error(entry);
+  }
+  
+  // Error logging service (production)
+  // sendToErrorService(entry);
+}
+```
+
+---
+
+### 2. Error Context
+
+**✅ Doğru (Context ile):**
+```typescript
+try {
+  await processPayment(orderId, amount);
+} catch (error) {
+  logError("Payment processing failed", error, {
+    orderId,
+    amount,
+    userId: currentUser.id,
+    timestamp: Date.now(),
+  });
+  throw error;
+}
+```
+
+---
+
+## 🚫 Anti-Patterns
+
+### 1. Silent Failures
+
+**❌ Yanlış:**
+```typescript
+try {
+  await saveData(data);
+} catch (error) {
+  // Silent failure - kullanıcı bilgilendirilmiyor
+}
+```
+
+**✅ Doğru:**
+```typescript
+try {
+  await saveData(data);
+} catch (error) {
+  logError("Failed to save data", error);
+  showErrorToast("Failed to save. Please try again.");
+}
+```
+
+---
+
+### 2. Catching Everything
+
+**❌ Yanlış:**
+```typescript
+try {
+  // Code
+} catch (error) {
+  // Tüm hataları aynı şekilde handle ediyor
+  console.error(error);
+}
+```
+
+**✅ Doğru:**
+```typescript
+try {
+  // Code
+} catch (error) {
+  if (error instanceof ValidationError) {
+    // Validation error handling
+  } else if (error instanceof NetworkError) {
+    // Network error handling
+  } else {
+    // Unknown error handling
+  }
+}
+```
+
+---
+
+### 3. Error Swallowing
+
+**❌ Yanlış:**
+```typescript
+function processData(data: unknown) {
+  try {
+    return JSON.parse(data as string);
+  } catch {
+    return null;  // Error swallowed
+  }
+}
+```
+
+**✅ Doğru:**
+```typescript
+function processData(data: unknown): Result<Data> {
+  try {
+    const parsed = JSON.parse(data as string);
+    return { success: true, data: parsed };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error : new Error("Parse error"),
+    };
+  }
+}
+```
+
+---
+
+## 📋 Error Handling Checklist
+
+### Frontend
+- [ ] Try-catch blocks kullanıldı mı?
+- [ ] Error boundaries var mı? (React)
+- [ ] User-friendly error messages var mı?
+- [ ] Error logging yapılıyor mu?
+- [ ] Fallback values tanımlı mı?
+
+### Backend
+- [ ] Result types kullanılıyor mu?
+- [ ] Custom error types var mı?
+- [ ] Error messages user-friendly mi?
+- [ ] Error logging yapılıyor mu?
+- [ ] Error recovery stratejisi var mı?
+
+### General
+- [ ] Silent failures yok mu?
+- [ ] Error swallowing yok mu?
+- [ ] Error context loglanıyor mu?
+- [ ] Retry logic var mı? (network errors için)
+
+---
+
+## 🔗 Referanslar
+
+- [Error Handling in TypeScript](https://kentcdodds.com/blog/get-a-catch-block-error-message-with-typescript)
+- [Rust Error Handling](https://doc.rust-lang.org/book/ch09-00-error-handling.html)
+- [React Error Boundaries](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

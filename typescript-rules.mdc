@@ -1,0 +1,442 @@
+---
+alwaysApply: true
+---
+
+# TypeScript Best Practices - Type Safety ve Code Quality
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. TypeScript projelerinde type safety ve code quality için kritik kurallar.
+
+---
+
+## 🎯 Type Safety Kuralları
+
+### 1. `any` Kullanımından Kaçının
+
+**❌ Yanlış:**
+```typescript
+function processData(data: any) {
+  return data.value * 2;  // Type safety yok!
+}
+```
+
+**✅ Doğru:**
+```typescript
+interface Data {
+  value: number;
+}
+
+function processData(data: Data): number {
+  return data.value * 2;  // Type-safe
+}
+```
+
+**Alternatifler:**
+- `unknown` kullanın (type guard ile)
+- `Record<string, unknown>` (key-value pairs için)
+- Generic types (`<T>`)
+
+---
+
+### 2. Strict Mode Kullanın
+
+**tsconfig.json:**
+```json
+{
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "strictBindCallApply": true,
+    "strictPropertyInitialization": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true
+  }
+}
+```
+
+**Neden?**
+- Runtime hatalarını compile-time'da yakalar
+- Daha güvenli kod
+- Daha iyi IDE desteği
+
+---
+
+### 3. Type Inference'ı Kullanın (Gereksiz Type Annotation'dan Kaçının)
+
+**❌ Yanlış:**
+```typescript
+const name: string = "John";  // Gereksiz
+const age: number = 25;        // Gereksiz
+```
+
+**✅ Doğru:**
+```typescript
+const name = "John";  // Type inference: string
+const age = 25;       // Type inference: number
+```
+
+**Ancak, function return types belirtin:**
+```typescript
+// ✅ Doğru - return type belirtilmeli
+function calculateTotal(items: Item[]): number {
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+```
+
+---
+
+### 4. Union Types ve Discriminated Unions
+
+**❌ Yanlış:**
+```typescript
+function handleEvent(event: string | number) {
+  if (typeof event === "string") {
+    // string işlemleri
+  } else {
+    // number işlemleri - ama ne tür number?
+  }
+}
+```
+
+**✅ Doğru (Discriminated Union):**
+```typescript
+type ClickEvent = { type: "click"; x: number; y: number };
+type KeyEvent = { type: "keypress"; key: string };
+type Event = ClickEvent | KeyEvent;
+
+function handleEvent(event: Event) {
+  switch (event.type) {
+    case "click":
+      console.log(`Clicked at (${event.x}, ${event.y})`);
+      break;
+    case "keypress":
+      console.log(`Key pressed: ${event.key}`);
+      break;
+  }
+}
+```
+
+---
+
+### 5. Type Guards Kullanın
+
+**❌ Yanlış:**
+```typescript
+function processValue(value: unknown) {
+  return value.length;  // Error: unknown'da length property yok
+}
+```
+
+**✅ Doğru:**
+```typescript
+function isString(value: unknown): value is string {
+  return typeof value === "string";
+}
+
+function processValue(value: unknown) {
+  if (isString(value)) {
+    return value.length;  // TypeScript artık value'nun string olduğunu biliyor
+  }
+  throw new Error("Value must be a string");
+}
+```
+
+---
+
+## 📦 Type Definitions
+
+### 1. Interface vs Type Alias
+
+**Interface kullanın:**
+- Object shapes için
+- Extend edilebilir yapılar için
+- Declaration merging gerekiyorsa
+
+```typescript
+interface User {
+  id: string;
+  name: string;
+}
+
+interface Admin extends User {
+  permissions: string[];
+}
+```
+
+**Type Alias kullanın:**
+- Union/Intersection types için
+- Primitive types için
+- Tuple types için
+
+```typescript
+type Status = "pending" | "approved" | "rejected";
+type UserId = string;
+type Coordinates = [number, number];
+```
+
+---
+
+### 2. Utility Types Kullanın
+
+**TypeScript'in built-in utility types:**
+
+```typescript
+// Partial - tüm property'ler optional
+type PartialUser = Partial<User>;
+
+// Required - tüm property'ler required
+type RequiredUser = Required<PartialUser>;
+
+// Pick - belirli property'leri seç
+type UserName = Pick<User, "name" | "email">;
+
+// Omit - belirli property'leri çıkar
+type UserWithoutId = Omit<User, "id">;
+
+// Record - key-value mapping
+type UserMap = Record<string, User>;
+
+// Readonly - immutable
+type ReadonlyUser = Readonly<User>;
+```
+
+---
+
+### 3. Generic Types
+
+**❌ Yanlış (Type duplication):**
+```typescript
+function getFirstString(items: string[]): string | undefined {
+  return items[0];
+}
+
+function getFirstNumber(items: number[]): number | undefined {
+  return items[0];
+}
+```
+
+**✅ Doğru (Generic):**
+```typescript
+function getFirst<T>(items: T[]): T | undefined {
+  return items[0];
+}
+
+// Kullanım
+const firstString = getFirst<string>(["a", "b", "c"]);
+const firstNumber = getFirst<number>([1, 2, 3]);
+```
+
+**Generic Constraints:**
+```typescript
+interface HasId {
+  id: string;
+}
+
+function getById<T extends HasId>(items: T[], id: string): T | undefined {
+  return items.find(item => item.id === id);
+}
+```
+
+---
+
+## 🔒 Null Safety
+
+### 1. Optional Chaining ve Nullish Coalescing
+
+**❌ Yanlış:**
+```typescript
+const name = user && user.profile && user.profile.name;
+const count = items ? items.length : 0;
+```
+
+**✅ Doğru:**
+```typescript
+const name = user?.profile?.name;
+const count = items?.length ?? 0;  // ?? sadece null/undefined için
+```
+
+---
+
+### 2. Non-null Assertion (Dikkatli Kullanın)
+
+**❌ Yanlış (Gereksiz kullanım):**
+```typescript
+const name = user!.name;  // Runtime'da hata verebilir
+```
+
+**✅ Doğru (Type guard ile):**
+```typescript
+if (!user) {
+  throw new Error("User not found");
+}
+const name = user.name;  // TypeScript artık user'ın null olmadığını biliyor
+```
+
+**Sadece gerçekten emin olduğunuzda kullanın:**
+```typescript
+// DOM element - render sonrası kesinlikle var
+const button = document.getElementById("submit")!;
+```
+
+---
+
+## 🎨 Code Organization
+
+### 1. Barrel Exports
+
+**❌ Yanlış:**
+```typescript
+// components/index.ts
+export { Button } from "./Button";
+export { Input } from "./Input";
+export { Card } from "./Card";
+// Her component için ayrı import
+```
+
+**✅ Doğru:**
+```typescript
+// components/index.ts
+export { Button } from "./Button";
+export { Input } from "./Input";
+export { Card } from "./Card";
+
+// Kullanım
+import { Button, Input, Card } from "./components";
+```
+
+---
+
+### 2. Type-only Imports
+
+**❌ Yanlış:**
+```typescript
+import { User, UserService } from "./user";
+// User type runtime'da kullanılmıyor ama bundle'a dahil
+```
+
+**✅ Doğru:**
+```typescript
+import type { User } from "./user";
+import { UserService } from "./user";
+// User sadece type olarak import edildi
+```
+
+---
+
+### 3. Namespace Imports (Büyük Kütüphaneler İçin)
+
+**❌ Yanlış:**
+```typescript
+import { debounce, throttle, memoize, curry } from "lodash";
+// Tüm lodash bundle'a dahil olabilir
+```
+
+**✅ Doğru:**
+```typescript
+import debounce from "lodash/debounce";
+import throttle from "lodash/throttle";
+// Sadece ihtiyacınız olan fonksiyonlar
+```
+
+---
+
+## 🚫 Anti-Patterns
+
+### 1. Type Assertion (as) Kullanımından Kaçının
+
+**❌ Yanlış:**
+```typescript
+const value = getValue() as string;  // Güvenli değil
+```
+
+**✅ Doğru:**
+```typescript
+const value = getValue();
+if (typeof value !== "string") {
+  throw new Error("Value must be a string");
+}
+// Artık value string olarak kullanılabilir
+```
+
+---
+
+### 2. @ts-ignore Kullanımından Kaçının
+
+**❌ Yanlış:**
+```typescript
+// @ts-ignore
+const result = unsafeFunction();
+```
+
+**✅ Doğru:**
+```typescript
+// @ts-expect-error - Açıklama ekleyin
+// Bu fonksiyon eski API kullanıyor, yakında güncellenecek
+const result = unsafeFunction();
+```
+
+**Daha iyi:**
+```typescript
+// Type guard ile type safety sağlayın
+if (isValidResult(result)) {
+  // Type-safe kullanım
+}
+```
+
+---
+
+### 3. Function Overloads (Gereksiz Kullanmayın)
+
+**❌ Yanlış (Gereksiz overload):**
+```typescript
+function process(value: string): string;
+function process(value: number): number;
+function process(value: string | number): string | number {
+  return value;
+}
+```
+
+**✅ Doğru (Generic kullanın):**
+```typescript
+function process<T extends string | number>(value: T): T {
+  return value;
+}
+```
+
+**Ancak, farklı return types gerekiyorsa overload kullanın:**
+```typescript
+function parse(input: string): Date;
+function parse(input: number): Date;
+function parse(input: string | number): Date {
+  return new Date(input);
+}
+```
+
+---
+
+## 📚 Best Practices Özeti
+
+1. ✅ **Strict mode aktif** - `tsconfig.json`'da `strict: true`
+2. ✅ **`any` kullanmayın** - `unknown` veya proper types kullanın
+3. ✅ **Type inference kullanın** - Gereksiz type annotation'dan kaçının
+4. ✅ **Return types belirtin** - Function return types açık olsun
+5. ✅ **Type guards kullanın** - Runtime type checking için
+6. ✅ **Utility types kullanın** - `Partial`, `Pick`, `Omit`, vb.
+7. ✅ **Generic types kullanın** - Code duplication'dan kaçının
+8. ✅ **Optional chaining** - `?.` ve `??` kullanın
+9. ✅ **Type-only imports** - `import type` kullanın
+10. ✅ **@ts-expect-error** - `@ts-ignore` yerine (açıklama ile)
+
+---
+
+## 🔗 Referanslar
+
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [TypeScript Deep Dive](https://basarat.gitbook.io/typescript/)
+- [TypeScript Best Practices](https://github.com/typescript-cheatsheets/react)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

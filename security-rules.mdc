@@ -1,0 +1,392 @@
+---
+alwaysApply: true
+---
+
+# Security Rules - Güvenlik Best Practices
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. Güvenlik kritik bir konudur - bu kurallara mutlaka uyun.
+
+---
+
+## 🔐 Authentication & Authorization
+
+### 1. Backend Validation (ZORUNLU)
+
+**❌ Yanlış (Frontend-only validation):**
+```typescript
+// Frontend
+if (user.role === "admin") {
+  deleteUser(userId);  // Backend kontrolü yok!
+}
+```
+
+**✅ Doğru (Backend validation):**
+```typescript
+// Frontend
+deleteUser(userId);  // Backend'e istek gönder
+
+// Backend (Rust/Tauri)
+#[tauri::command]
+fn delete_user(user_id: String, session: Session) -> Result<(), String> {
+  // Role kontrolü backend'de
+  if session.role != "admin" {
+    return Err("Unauthorized".to_string());
+  }
+  // Silme işlemi
+  Ok(())
+}
+```
+
+**Kural:** Frontend validation UX için, backend validation güvenlik için.
+
+---
+
+### 2. Session Management
+
+**❌ Yanlış (LocalStorage'da sensitive data):**
+```typescript
+localStorage.setItem("token", token);
+localStorage.setItem("role", "admin");
+```
+
+**✅ Doğru (SessionStorage + TTL):**
+```typescript
+// SessionStorage kullan (tab kapanınca silinir)
+sessionStorage.setItem("token", token);
+
+// TTL ekle
+const session = {
+  token,
+  expiresAt: Date.now() + 3600000, // 1 saat
+};
+sessionStorage.setItem("session", JSON.stringify(session));
+
+// Her istekte kontrol et
+function isSessionValid(): boolean {
+  const session = sessionStorage.getItem("session");
+  if (!session) return false;
+  
+  const { expiresAt } = JSON.parse(session);
+  return Date.now() < expiresAt;
+}
+```
+
+---
+
+### 3. Rate Limiting
+
+**❌ Yanlış (Rate limiting yok):**
+```typescript
+async function login(username: string, password: string) {
+  // Her istekte backend'e gidiyor - brute force'a açık
+  return await invoke("login", { username, password });
+}
+```
+
+**✅ Doğru (Client-side + Backend rate limiting):**
+```typescript
+// Client-side rate limiting
+const loginAttempts = new Map<string, number>();
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_TIME = 15 * 60 * 1000; // 15 dakika
+
+async function login(username: string, password: string) {
+  const attempts = loginAttempts.get(username) || 0;
+  const lastAttempt = loginAttempts.get(`${username}_time`) || 0;
+  
+  if (attempts >= MAX_ATTEMPTS) {
+    const timeSinceLastAttempt = Date.now() - lastAttempt;
+    if (timeSinceLastAttempt < LOCKOUT_TIME) {
+      throw new Error("Too many attempts. Please try again later.");
+    }
+    // Lockout süresi doldu, reset
+    loginAttempts.delete(username);
+  }
+  
+  try {
+    const result = await invoke("login", { username, password });
+    loginAttempts.delete(username);
+    return result;
+  } catch (error) {
+    loginAttempts.set(username, attempts + 1);
+    loginAttempts.set(`${username}_time`, Date.now());
+    throw error;
+  }
+}
+```
+
+**Backend'de de rate limiting:**
+```rust
+// Rust/Tauri - Rate limiting middleware
+use std::collections::HashMap;
+use std::time::{Duration, Instant};
+
+struct RateLimiter {
+  attempts: HashMap<String, (u32, Instant)>,
+}
+
+impl RateLimiter {
+  fn check(&mut self, key: &str, max: u32, window: Duration) -> bool {
+    let now = Instant::now();
+    let (count, reset_time) = self.attempts.get(key)
+      .copied()
+      .unwrap_or((0, now));
+    
+    if now.duration_since(reset_time) > window {
+      self.attempts.insert(key.to_string(), (1, now));
+      true
+    } else if count < max {
+      self.attempts.insert(key.to_string(), (count + 1, reset_time));
+      true
+    } else {
+      false
+    }
+  }
+}
+```
+
+---
+
+## 🛡️ Input Validation & Sanitization
+
+### 1. Input Sanitization
+
+**❌ Yanlış (Sanitization yok):**
+```typescript
+function searchProducts(query: string) {
+  // SQL injection riski (eğer raw SQL kullanılıyorsa)
+  return invoke("search_products", { query });
+}
+```
+
+**✅ Doğru (Input sanitization):**
+```typescript
+function sanitizeInput(input: string): string {
+  // HTML/JS injection önleme
+  return input
+    .replace(/[<>]/g, "")  // HTML tags
+    .replace(/[&"']/g, "") // HTML entities
+    .trim()
+    .slice(0, 100); // Max length
+}
+
+function searchProducts(query: string) {
+  const sanitized = sanitizeInput(query);
+  return invoke("search_products", { query: sanitized });
+}
+```
+
+**Backend'de de validation:**
+```rust
+// Rust - Input validation
+fn validate_input(input: &str) -> Result<String, String> {
+  if input.len() > 100 {
+    return Err("Input too long".to_string());
+  }
+  
+  if input.contains(|c: char| !c.is_alphanumeric() && c != ' ') {
+    return Err("Invalid characters".to_string());
+  }
+  
+  Ok(input.trim().to_string())
+}
+```
+
+---
+
+### 2. Type Validation
+
+**❌ Yanlış (Type assertion):**
+```typescript
+function processData(data: unknown) {
+  const user = data as User;  // Güvenli değil!
+  return user.name;
+}
+```
+
+**✅ Doğru (Type guard):**
+```typescript
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
+
+function isUser(data: unknown): data is User {
+  return (
+    typeof data === "object" &&
+    data !== null &&
+    "id" in data &&
+    "name" in data &&
+    "email" in data &&
+    typeof (data as any).id === "string" &&
+    typeof (data as any).name === "string" &&
+    typeof (data as any).email === "string"
+  );
+}
+
+function processData(data: unknown) {
+  if (!isUser(data)) {
+    throw new Error("Invalid user data");
+  }
+  return data.name;  // Type-safe
+}
+```
+
+---
+
+### 3. Length Validation
+
+**❌ Yanlış (Length kontrolü yok):**
+```typescript
+function createProduct(name: string) {
+  return invoke("create_product", { name });
+}
+```
+
+**✅ Doğru (Length validation):**
+```typescript
+const MIN_NAME_LENGTH = 3;
+const MAX_NAME_LENGTH = 100;
+
+function createProduct(name: string) {
+  if (name.length < MIN_NAME_LENGTH || name.length > MAX_NAME_LENGTH) {
+    throw new Error(`Name must be between ${MIN_NAME_LENGTH} and ${MAX_NAME_LENGTH} characters`);
+  }
+  return invoke("create_product", { name });
+}
+```
+
+---
+
+## 🔒 Data Protection
+
+### 1. Sensitive Data Handling
+
+**❌ Yanlış (Console'da sensitive data):**
+```typescript
+console.log("User data:", user);
+console.log("Token:", token);
+```
+
+**✅ Doğru (Sensitive data'yı loglamayın):**
+```typescript
+// Production'da sensitive data loglama
+if (process.env.NODE_ENV === "development") {
+  console.log("User data:", { id: user.id, name: user.name });
+} else {
+  console.log("User authenticated:", user.id);
+}
+
+// Token'ı asla loglamayın
+// console.log("Token:", token); // ❌ ASLA
+```
+
+---
+
+### 2. Password Handling
+
+**❌ Yanlış (Plain text password):**
+```typescript
+const user = {
+  username: "admin",
+  password: "123456",  // ❌ ASLA
+};
+```
+
+**✅ Doğru (Hashed password - backend):**
+```rust
+// Rust - bcrypt kullan
+use bcrypt::{hash, verify, DEFAULT_COST};
+
+fn hash_password(password: &str) -> Result<String, String> {
+  hash(password, DEFAULT_COST)
+    .map_err(|e| format!("Password hashing failed: {}", e))
+}
+
+fn verify_password(password: &str, hash: &str) -> Result<bool, String> {
+  verify(password, hash)
+    .map_err(|e| format!("Password verification failed: {}", e))
+}
+```
+
+**Frontend'de password asla store etmeyin:**
+```typescript
+// ❌ ASLA
+localStorage.setItem("password", password);
+
+// ✅ Sadece session'da tut (ve sadece login sırasında)
+// Login sonrası hemen sil
+```
+
+---
+
+### 3. SQL Injection Prevention
+
+**❌ Yanlış (Raw SQL - injection riski):**
+```rust
+// ❌ ASLA - Raw SQL string concatenation
+let query = format!("SELECT * FROM users WHERE name = '{}'", user_input);
+```
+
+**✅ Doğru (Parameterized queries):**
+```rust
+// ✅ Doğru - Parameterized query
+use rusqlite::params;
+
+fn get_user(conn: &Connection, name: &str) -> Result<User> {
+  conn.query_row(
+    "SELECT * FROM users WHERE name = ?1",
+    params![name],
+    |row| {
+      Ok(User {
+        id: row.get(0)?,
+        name: row.get(1)?,
+      })
+    },
+  )
+}
+```
+
+---
+
+## 🚨 Security Checklist
+
+### Authentication
+- [ ] Backend role validation var mı?
+- [ ] Session TTL kontrolü var mı?
+- [ ] Rate limiting var mı? (login, sensitive operations)
+- [ ] Password hashing kullanılıyor mu? (bcrypt, argon2)
+- [ ] Timing attack koruması var mı? (bcrypt::verify)
+
+### Input Validation
+- [ ] Frontend validation var mı? (UX için)
+- [ ] Backend validation var mı? (Güvenlik için)
+- [ ] Input sanitization yapılıyor mu?
+- [ ] Length validation var mı?
+- [ ] Type validation var mı?
+
+### Data Protection
+- [ ] Sensitive data loglanmıyor mu?
+- [ ] Password plain text store edilmiyor mu?
+- [ ] SQL injection koruması var mı? (Parameterized queries)
+- [ ] XSS koruması var mı? (Input sanitization)
+- [ ] CSRF koruması var mı? (Tauri desktop app'lerde genelde gerekli değil)
+
+### Session Security
+- [ ] SessionStorage kullanılıyor mu? (LocalStorage yerine)
+- [ ] Session TTL kontrolü var mı?
+- [ ] Session invalidation var mı? (logout, timeout)
+
+---
+
+## 🔗 Referanslar
+
+- [OWASP Top 10](https://owasp.org/www-project-top-ten/)
+- [OWASP Cheat Sheet Series](https://cheatsheetseries.owasp.org/)
+- [Rust Security Guidelines](https://rustsec.org/)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

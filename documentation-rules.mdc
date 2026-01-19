@@ -1,0 +1,458 @@
+---
+alwaysApply: true
+---
+
+# Documentation Rules - Dokümantasyon Best Practices
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. İyi dokümantasyon kodun bakımını kolaylaştırır.
+
+---
+
+## 📝 Code Comments
+
+### 1. JSDoc Comments
+
+**✅ Doğru (JSDoc):**
+```typescript
+/**
+ * Calculates the total price of items in the cart.
+ * 
+ * @param items - Array of cart items with price property
+ * @returns Total price in kuruş (integer)
+ * @throws {Error} If items array is empty
+ * 
+ * @example
+ * ```typescript
+ * const items = [
+ *   { id: "1", price: 1000 },
+ *   { id: "2", price: 2000 },
+ * ];
+ * const total = calculateTotal(items); // 3000
+ * ```
+ */
+function calculateTotal(items: CartItem[]): number {
+  if (items.length === 0) {
+    throw new Error("Items array cannot be empty");
+  }
+  return items.reduce((sum, item) => sum + item.price, 0);
+}
+```
+
+---
+
+### 2. Inline Comments
+
+**❌ Yanlış (Gereksiz comment):**
+```typescript
+// Set count to 0
+let count = 0;
+
+// Loop through items
+for (const item of items) {
+  // Add item price to total
+  total += item.price;
+}
+```
+
+**✅ Doğru (Sadece gerektiğinde):**
+```typescript
+let count = 0;  // Self-explanatory, comment gerekmez
+
+// Complex business logic için comment
+// Apply discount only if user is premium member and order > 1000
+if (user.isPremium && orderTotal > 1000) {
+  discount = orderTotal * 0.1;
+}
+```
+
+---
+
+### 3. TODO Comments
+
+**✅ Doğru (TODO format):**
+```typescript
+// TODO: Refactor this function to use Result type instead of throwing
+// Related: Epic-5, Story-5.2
+function processPayment(orderId: string) {
+  // Implementation
+}
+
+// FIXME: This causes memory leak in long-running sessions
+// Issue: #123
+function cacheData(data: unknown) {
+  // Implementation
+}
+```
+
+---
+
+## 📚 Component Documentation
+
+### 1. Component Props Documentation
+
+**✅ Doğru (Props documentation):**
+```typescript
+interface ButtonProps {
+  /** Button text content */
+  children: React.ReactNode;
+  
+  /** Button variant style */
+  variant?: "primary" | "secondary" | "danger";
+  
+  /** Click handler function */
+  onClick?: () => void;
+  
+  /** Disable button interaction */
+  disabled?: boolean;
+  
+  /** ARIA label for accessibility */
+  "aria-label"?: string;
+}
+
+/**
+ * Button component with multiple variants.
+ * 
+ * @example
+ * ```tsx
+ * <Button variant="primary" onClick={handleClick}>
+ *   Submit
+ * </Button>
+ * ```
+ */
+export function Button({
+  children,
+  variant = "primary",
+  onClick,
+  disabled = false,
+  "aria-label": ariaLabel,
+}: ButtonProps) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      className={`button button--${variant}`}
+    >
+      {children}
+    </button>
+  );
+}
+```
+
+---
+
+### 2. Complex Component Logic
+
+**✅ Doğru (Complex logic documentation):**
+```typescript
+/**
+ * ProductList component with virtual scrolling for performance.
+ * 
+ * Uses react-window to render only visible items, improving
+ * performance for large product lists (1000+ items).
+ * 
+ * @example
+ * ```tsx
+ * <ProductList
+ *   products={products}
+ *   onProductClick={handleProductClick}
+ *   itemHeight={100}
+ * />
+ * ```
+ */
+export function ProductList({ products, onProductClick, itemHeight }: Props) {
+  // Implementation with virtual scrolling
+}
+```
+
+---
+
+## 🔧 API Documentation
+
+### 1. Tauri Commands Documentation
+
+**✅ Doğru (Tauri command documentation):**
+```rust
+/// Retrieves a user by ID from the database.
+///
+/// # Arguments
+///
+/// * `id` - User ID (UUID string)
+/// * `session` - Current user session for authorization
+///
+/// # Returns
+///
+/// Returns `Ok(User)` if user exists and is accessible,
+/// `Err(String)` if user not found or unauthorized.
+///
+/// # Errors
+///
+/// - "User not found" - User ID doesn't exist
+/// - "Unauthorized" - User doesn't have permission
+///
+/// # Example
+///
+/// ```rust
+/// let user = get_user("123e4567-e89b-12d3-a456-426614174000".to_string(), session)?;
+/// ```
+#[tauri::command]
+fn get_user(id: String, session: Session) -> Result<User, String> {
+  // Implementation
+}
+```
+
+---
+
+### 2. Function Documentation
+
+**✅ Doğru (Function documentation):**
+```typescript
+/**
+ * Formats a price value (in kuruş) to display string.
+ * 
+ * Converts integer price (e.g., 1000) to formatted string
+ * with currency symbol (e.g., "10,00 ₺").
+ * 
+ * @param price - Price in kuruş (integer)
+ * @param currency - Currency symbol (default: "₺")
+ * @returns Formatted price string
+ * 
+ * @example
+ * ```typescript
+ * formatPrice(1000); // "10,00 ₺"
+ * formatPrice(1234, "$"); // "12,34 $"
+ * ```
+ */
+function formatPrice(price: number, currency: string = "₺"): string {
+  const lira = Math.floor(price / 100);
+  const kurus = price % 100;
+  return `${lira.toLocaleString("tr-TR")},${kurus.toString().padStart(2, "0")} ${currency}`;
+}
+```
+
+---
+
+## 📖 README Documentation
+
+### 1. README Structure
+
+**✅ Doğru (README structure):**
+```markdown
+# Project Name
+
+Brief description of the project.
+
+## Features
+
+- Feature 1
+- Feature 2
+
+## Installation
+
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
+
+## Usage
+
+\`\`\`typescript
+import { Component } from "./components";
+\`\`\`
+
+## Development
+
+\`\`\`bash
+npm run dev
+npm run test
+npm run build
+\`\`\`
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md)
+
+## License
+
+MIT
+```
+
+---
+
+### 2. API Documentation
+
+**✅ Doğru (API documentation):**
+```markdown
+## API Reference
+
+### `getUser(id: string): Promise<User>`
+
+Retrieves a user by ID.
+
+**Parameters:**
+- `id` (string) - User ID
+
+**Returns:**
+- `Promise<User>` - User object
+
+**Throws:**
+- `Error` - If user not found
+
+**Example:**
+\`\`\`typescript
+const user = await getUser("123");
+\`\`\`
+```
+
+---
+
+## 🏗️ Architecture Documentation
+
+### 1. Architecture Decision Records (ADR)
+
+**✅ Doğru (ADR format):**
+```markdown
+# ADR-001: Use SQLite for Local Storage
+
+## Status
+Accepted
+
+## Context
+We need local storage for offline-first functionality.
+
+## Decision
+Use SQLite with rusqlite for local database.
+
+## Consequences
+- ✅ Offline-first support
+- ✅ Fast local queries
+- ⚠️ Database migrations needed
+- ⚠️ Backup strategy required
+```
+
+---
+
+### 2. Code Structure Documentation
+
+**✅ Doğru (Structure documentation):**
+```markdown
+## Project Structure
+
+\`\`\`
+src/
+├── components/     # React components
+├── pages/         # Page components
+├── api.ts         # Tauri API wrapper
+├── types.ts       # TypeScript types
+└── utils/         # Utility functions
+\`\`\`
+```
+
+---
+
+## 📋 Documentation Checklist
+
+### Code Comments
+- [ ] Complex functions JSDoc ile dokümante edildi mi?
+- [ ] Function parameters açıklanmış mı?
+- [ ] Return types belirtilmiş mi?
+- [ ] Examples var mı?
+- [ ] TODO comments açıklayıcı mı?
+
+### Component Documentation
+- [ ] Props interface dokümante edildi mi?
+- [ ] Component usage examples var mı?
+- [ ] Complex logic açıklanmış mı?
+
+### API Documentation
+- [ ] Tauri commands dokümante edildi mi?
+- [ ] Function signatures açık mı?
+- [ ] Error cases belirtilmiş mi?
+- [ ] Examples var mı?
+
+### README
+- [ ] Project description var mı?
+- [ ] Installation instructions var mı?
+- [ ] Usage examples var mı?
+- [ ] API reference var mı?
+
+---
+
+## 🚫 Anti-Patterns
+
+### 1. Obvious Comments
+
+**❌ Yanlış:**
+```typescript
+// Set x to 5
+let x = 5;
+
+// Return the user
+return user;
+```
+
+**✅ Doğru:**
+```typescript
+let x = 5;  // Comment gerekmez
+
+return user;  // Comment gerekmez
+```
+
+---
+
+### 2. Outdated Comments
+
+**❌ Yanlış:**
+```typescript
+// This function calculates tax (old implementation)
+function calculateTax(price: number) {
+  // New implementation - comment eski
+  return price * 0.18;
+}
+```
+
+**✅ Doğru:**
+```typescript
+/**
+ * Calculates VAT (18%) for given price.
+ */
+function calculateTax(price: number): number {
+  return price * 0.18;
+}
+```
+
+---
+
+### 3. Commented Code
+
+**❌ Yanlış:**
+```typescript
+// function oldImplementation() {
+//   // Old code
+// }
+
+function newImplementation() {
+  // New code
+}
+```
+
+**✅ Doğru:**
+```typescript
+// Eski kodu sil, git history'de saklanır
+function newImplementation() {
+  // New code
+}
+```
+
+---
+
+## 🔗 Referanslar
+
+- [JSDoc Documentation](https://jsdoc.app/)
+- [TypeDoc](https://typedoc.org/)
+- [Rust Documentation](https://doc.rust-lang.org/book/ch14-02-publishing-to-crates-io.html#making-useful-documentation-comments)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

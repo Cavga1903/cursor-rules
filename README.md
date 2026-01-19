@@ -11,6 +11,13 @@ Bu repository, Cursor IDE için geliştirilmiş AI development rules dosyaların
 - **`reactrules.mdc`** - React performans optimizasyon kuralları (Vercel Best Practices)
 - **`ai-optimization.mdc`** - AI context window optimizasyonu (250 satır limiti, tek component per dosya)
 - **`start-guide.mdc`** - Otomatik başlangıç ve devam etme sistemi
+- **`typescript-rules.mdc`** - TypeScript best practices, type safety, strict mode
+- **`security-rules.mdc`** - Güvenlik best practices, authentication, authorization, input validation
+- **`testing-rules.mdc`** - Test best practices, test patterns, coverage guidelines
+- **`error-handling-rules.mdc`** - Hata yönetimi patterns, error recovery strategies
+- **`accessibility-rules.mdc`** - Erişilebilirlik guidelines, WCAG compliance, ARIA patterns
+- **`git-workflow-rules.mdc`** - Git workflow, commit conventions, branch strategy
+- **`documentation-rules.mdc`** - Dokümantasyon standartları, JSDoc, code comments
 
 ### Project-Specific Rules
 
@@ -71,6 +78,13 @@ cursor-rules/
 ├── reactrules.mdc            # React best practices
 ├── ai-optimization.mdc       # AI optimization
 ├── start-guide.mdc           # Start/continue guide
+├── typescript-rules.mdc      # TypeScript best practices
+├── security-rules.mdc        # Security best practices
+├── testing-rules.mdc         # Testing best practices
+├── error-handling-rules.mdc  # Error handling patterns
+├── accessibility-rules.mdc   # Accessibility guidelines
+├── git-workflow-rules.mdc    # Git workflow & conventions
+├── documentation-rules.mdc   # Documentation standards
 ├── bmad-context-checker.mdc  # BMad context checker
 └── mvprules.mdc              # MVP rules (projeye özel)
 ```
@@ -161,6 +175,55 @@ Rule içeriği...
 - "Devam et" komutu işleme
 - Senaryo bazlı başlangıç
 - Otomatik öncelik belirleme
+
+### typescript-rules.mdc
+- Type safety kuralları
+- Strict mode kullanımı
+- Type inference best practices
+- Utility types ve generics
+- Null safety patterns
+
+### security-rules.mdc
+- Authentication & authorization
+- Session management
+- Rate limiting
+- Input validation & sanitization
+- SQL injection prevention
+
+### testing-rules.mdc
+- Test piramidi stratejisi
+- Unit testing patterns
+- Component testing (React Testing Library)
+- Integration testing
+- Test coverage guidelines
+
+### error-handling-rules.mdc
+- Error types ve kategorileri
+- Try-catch best practices
+- Result type pattern
+- Error boundaries (React)
+- Error recovery strategies
+
+### accessibility-rules.mdc
+- WCAG 2.1 AA compliance
+- Keyboard navigation
+- ARIA labels & roles
+- Color contrast requirements
+- Form accessibility
+
+### git-workflow-rules.mdc
+- Branch naming conventions
+- Conventional commits
+- Commit message structure
+- Merge strategies
+- Code review checklist
+
+### documentation-rules.mdc
+- JSDoc comments
+- Component documentation
+- API documentation
+- README standards
+- Architecture decision records
 
 ## 🔄 Güncelleme
 

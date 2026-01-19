@@ -1,0 +1,379 @@
+---
+alwaysApply: true
+---
+
+# Git Workflow Rules - Version Control Best Practices
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. Git workflow tutarlılık ve collaboration için kritiktir.
+
+---
+
+## 🌿 Branch Strategy
+
+### 1. Branch Naming Convention
+
+**Format:** `{type}/{description}`
+
+**Types:**
+- `feature/` - Yeni özellik
+- `fix/` - Bug fix
+- `refactor/` - Refactoring
+- `docs/` - Dokümantasyon
+- `test/` - Test ekleme/düzenleme
+- `chore/` - Genel bakım
+
+**✅ Doğru:**
+```bash
+feature/user-authentication
+fix/login-race-condition
+refactor/product-list-component
+docs/api-documentation
+test/auth-integration-tests
+chore/update-dependencies
+```
+
+**❌ Yanlış:**
+```bash
+new-feature
+bugfix
+my-branch
+fix123
+```
+
+---
+
+### 2. Branch Workflow
+
+**Main Branches:**
+- `main` - Production-ready code
+- `develop` - Development branch (opsiyonel)
+
+**Feature Branches:**
+```bash
+# Feature branch oluştur
+git checkout -b feature/user-profile
+
+# Development yap
+git add .
+git commit -m "feat(user): add user profile component"
+
+# Main'e merge et
+git checkout main
+git merge feature/user-profile
+git branch -d feature/user-profile
+```
+
+---
+
+## 📝 Commit Messages
+
+### 1. Conventional Commits
+
+**Format:** `{type}({scope}): {description}`
+
+**Types:**
+- `feat:` - Yeni özellik
+- `fix:` - Bug fix
+- `refactor:` - Refactoring
+- `docs:` - Dokümantasyon
+- `style:` - Code style (formatting, whitespace)
+- `test:` - Test ekleme/düzenleme
+- `chore:` - Genel bakım
+- `perf:` - Performance improvement
+- `ci:` - CI/CD changes
+
+**✅ Doğru:**
+```bash
+feat(auth): add login functionality
+fix(pos): resolve race condition in cart
+refactor(stock): extract magic numbers to constants
+docs(api): add Tauri commands documentation
+test(auth): add login integration tests
+chore(deps): update dependencies
+```
+
+**❌ Yanlış:**
+```bash
+update
+fix bug
+changes
+WIP
+```
+
+---
+
+### 2. Commit Message Structure
+
+**Format:**
+```
+{type}({scope}): {short description}
+
+{detailed description (optional)}
+
+{footer (optional)}
+```
+
+**✅ Doğru:**
+```bash
+feat(auth): add role-based access control
+
+- Add Owner and Cashier role validation
+- Implement backend role checks in Tauri commands
+- Add frontend role-based UI rendering
+
+Related: P1, Epic-2
+```
+
+---
+
+### 3. Commit Best Practices
+
+**✅ Doğru:**
+- Atomic commits (tek bir değişiklik)
+- Descriptive messages
+- Present tense ("add" not "added")
+- Scope belirtin (component, feature, vb.)
+
+**❌ Yanlış:**
+- Multiple unrelated changes
+- Vague messages ("update", "fix")
+- Past tense ("added", "fixed")
+- No scope
+
+---
+
+## 🔄 Git Workflow
+
+### 1. Pre-Commit Checklist
+
+**Quality Gates:**
+```bash
+# 1. Type checking
+npm run typecheck
+
+# 2. Linting
+npm run lint
+
+# 3. Tests
+npm run test
+
+# 4. Build check
+npm run build
+```
+
+**✅ Doğru (Pre-commit hook):**
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+
+npm run typecheck || exit 1
+npm run lint || exit 1
+npm run test || exit 1
+
+echo "✅ All checks passed"
+```
+
+---
+
+### 2. Commit Workflow
+
+**✅ Doğru:**
+```bash
+# 1. Status kontrolü
+git status
+
+# 2. Staging
+git add .
+
+# 3. Commit
+git commit -m "feat(scope): description"
+
+# 4. Push
+git push origin feature/branch-name
+```
+
+---
+
+### 3. Merge Strategy
+
+**✅ Doğru (Merge commit):**
+```bash
+git checkout main
+git merge feature/user-profile
+git push origin main
+```
+
+**✅ Doğru (Rebase - linear history):**
+```bash
+git checkout feature/user-profile
+git rebase main
+git checkout main
+git merge feature/user-profile
+```
+
+---
+
+## 🏷️ Tagging
+
+### 1. Semantic Versioning
+
+**Format:** `v{MAJOR}.{MINOR}.{PATCH}`
+
+- **MAJOR** - Breaking changes
+- **MINOR** - New features (backward compatible)
+- **PATCH** - Bug fixes
+
+**✅ Doğru:**
+```bash
+v1.0.0  # Initial release
+v1.1.0  # New feature
+v1.1.1  # Bug fix
+v2.0.0  # Breaking change
+```
+
+---
+
+### 2. Tagging Workflow
+
+**✅ Doğru:**
+```bash
+# Tag oluştur
+git tag -a v1.0.0 -m "Release version 1.0.0"
+
+# Tag push et
+git push origin v1.0.0
+
+# Tüm tag'leri push et
+git push origin --tags
+```
+
+---
+
+## 🔍 Code Review
+
+### 1. Pull Request Checklist
+
+**Review Checklist:**
+- [ ] Code quality (readability, maintainability)
+- [ ] Type safety (no `any`, proper types)
+- [ ] Error handling (try-catch, Result types)
+- [ ] Security (input validation, role checks)
+- [ ] Performance (N+1 queries, waterfall'lar)
+- [ ] Testing (unit tests, integration tests)
+- [ ] Documentation (JSDoc, comments)
+- [ ] Accessibility (ARIA labels, keyboard navigation)
+
+---
+
+### 2. PR Description Template
+
+**Format:**
+```markdown
+## Description
+Brief description of changes
+
+## Type of Change
+- [ ] Bug fix
+- [ ] New feature
+- [ ] Refactoring
+- [ ] Documentation
+
+## Testing
+- [ ] Unit tests added/updated
+- [ ] Integration tests added/updated
+- [ ] Manual testing done
+
+## Related Issues
+Closes #123
+Related: Epic-2, Story-2.1
+```
+
+---
+
+## 🚫 Anti-Patterns
+
+### 1. Force Push
+
+**❌ Yanlış:**
+```bash
+git push --force origin main  # ASLA main'e force push yapmayın
+```
+
+**✅ Doğru:**
+```bash
+# Feature branch'te force push (gerekirse)
+git push --force-with-lease origin feature/branch-name
+```
+
+---
+
+### 2. Commit History Pollution
+
+**❌ Yanlış:**
+```bash
+git commit -m "WIP"
+git commit -m "fix"
+git commit -m "update"
+```
+
+**✅ Doğru:**
+```bash
+# Squash commits before merge
+git rebase -i HEAD~3
+# pick, squash, reword kullan
+```
+
+---
+
+### 3. Large Commits
+
+**❌ Yanlış:**
+```bash
+git add .
+git commit -m "big update"
+# 50+ dosya değişikliği tek commit'te
+```
+
+**✅ Doğru:**
+```bash
+# Atomic commits
+git add src/components/Button.tsx
+git commit -m "feat(ui): add Button component"
+
+git add src/components/Input.tsx
+git commit -m "feat(ui): add Input component"
+```
+
+---
+
+## 📋 Git Workflow Checklist
+
+### Before Commit
+- [ ] Quality gates geçti mi? (typecheck, lint, test)
+- [ ] Commit message conventional format'ta mı?
+- [ ] Atomic commit mi? (tek bir değişiklik)
+- [ ] Scope belirtildi mi?
+
+### Before Push
+- [ ] Branch name doğru mu?
+- [ ] Latest main/develop merge edildi mi?
+- [ ] Conflicts çözüldü mü?
+
+### Before Merge
+- [ ] Code review yapıldı mı?
+- [ ] Tests geçti mi?
+- [ ] Documentation güncellendi mi?
+- [ ] Breaking changes belirtildi mi?
+
+---
+
+## 🔗 Referanslar
+
+- [Conventional Commits](https://www.conventionalcommits.org/)
+- [Semantic Versioning](https://semver.org/)
+- [Git Workflow Best Practices](https://www.atlassian.com/git/tutorials/comparing-workflows)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

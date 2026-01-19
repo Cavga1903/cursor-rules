@@ -1,0 +1,495 @@
+---
+alwaysApply: true
+---
+
+# Accessibility Rules - Erişilebilirlik Best Practices
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. Erişilebilirlik tüm kullanıcılar için kritiktir.
+
+---
+
+## 🎯 WCAG 2.1 AA Compliance
+
+### 1. WCAG Seviyeleri
+
+- **Level A** - Minimum requirements
+- **Level AA** - Recommended (hedefimiz)
+- **Level AAA** - Enhanced (opsiyonel)
+
+---
+
+## ⌨️ Keyboard Navigation
+
+### 1. Focus Management
+
+**❌ Yanlış (Focus trap yok):**
+```typescript
+function Modal({ isOpen, onClose }) {
+  if (!isOpen) return null;
+  return (
+    <div className="modal">
+      <button onClick={onClose}>Close</button>
+    </div>
+  );
+}
+```
+
+**✅ Doğru (Focus trap):**
+```typescript
+import { useEffect, useRef } from "react";
+
+function Modal({ isOpen, onClose }) {
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Previous focus'u kaydet
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      
+      // Modal'a focus ver
+      modalRef.current?.focus();
+      
+      // Focus trap - Escape ile kapat
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+          onClose();
+        }
+      };
+      
+      document.addEventListener("keydown", handleEscape);
+      return () => {
+        document.removeEventListener("keydown", handleEscape);
+        // Previous focus'a geri dön
+        previousFocusRef.current?.focus();
+      };
+    }
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+  
+  return (
+    <div
+      ref={modalRef}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      tabIndex={-1}
+      className="modal"
+    >
+      <h2 id="modal-title">Modal Title</h2>
+      <button onClick={onClose}>Close</button>
+    </div>
+  );
+}
+```
+
+---
+
+### 2. Tab Order
+
+**✅ Doğru (Logical tab order):**
+```typescript
+function Form() {
+  return (
+    <form>
+      <label htmlFor="email">Email</label>
+      <input id="email" type="email" />
+      
+      <label htmlFor="password">Password</label>
+      <input id="password" type="password" />
+      
+      <button type="submit">Submit</button>
+    </form>
+  );
+}
+```
+
+**❌ Yanlış (Tab order bozuk):**
+```typescript
+function Form() {
+  return (
+    <form>
+      <input type="email" />  {/* Label yok */}
+      <input type="password" />  {/* Label yok */}
+      <button>Submit</button>
+    </form>
+  );
+}
+```
+
+---
+
+## 🏷️ ARIA Labels & Roles
+
+### 1. ARIA Labels
+
+**❌ Yanlış (Label yok):**
+```typescript
+<button onClick={handleClick}>
+  <Icon name="close" />
+</button>
+```
+
+**✅ Doğru (ARIA label):**
+```typescript
+<button
+  onClick={handleClose}
+  aria-label="Close dialog"
+>
+  <Icon name="close" />
+</button>
+```
+
+---
+
+### 2. ARIA Roles
+
+**✅ Doğru (Semantic roles):**
+```typescript
+<nav role="navigation" aria-label="Main navigation">
+  <ul role="list">
+    <li role="listitem">
+      <a href="/home">Home</a>
+    </li>
+  </ul>
+</nav>
+
+<button role="button" aria-pressed={isPressed}>
+  Toggle
+</button>
+
+<div role="alert" aria-live="polite">
+  {errorMessage}
+</div>
+```
+
+---
+
+### 3. ARIA States
+
+**✅ Doğru (ARIA states):**
+```typescript
+<button
+  aria-expanded={isOpen}
+  aria-controls="dropdown-menu"
+  onClick={toggleMenu}
+>
+  Menu
+</button>
+
+<ul
+  id="dropdown-menu"
+  role="menu"
+  aria-hidden={!isOpen}
+>
+  <li role="menuitem">Item 1</li>
+</ul>
+```
+
+---
+
+## 🎨 Visual Accessibility
+
+### 1. Color Contrast
+
+**WCAG AA Requirements:**
+- **Normal text:** 4.5:1 contrast ratio
+- **Large text (18pt+):** 3:1 contrast ratio
+- **UI components:** 3:1 contrast ratio
+
+**✅ Doğru (Color contrast):**
+```css
+/* ✅ Good contrast */
+.button {
+  background-color: #0066cc;  /* Blue */
+  color: #ffffff;              /* White - 4.5:1 ratio */
+}
+
+/* ❌ Poor contrast */
+.button {
+  background-color: #cccccc;   /* Light gray */
+  color: #ffffff;              /* White - 1.2:1 ratio */
+}
+```
+
+**Tools:**
+- [WebAIM Contrast Checker](https://webaim.org/resources/contrastchecker/)
+- Browser DevTools (Accessibility panel)
+
+---
+
+### 2. Color Independence
+
+**❌ Yanlış (Sadece renk ile bilgi):**
+```typescript
+<span style={{ color: "red" }}>Error</span>
+```
+
+**✅ Doğru (Renk + text/icon):**
+```typescript
+<span role="alert" aria-label="Error">
+  <Icon name="error" />
+  Error: Invalid input
+</span>
+```
+
+---
+
+### 3. Focus Indicators
+
+**❌ Yanlış (Focus indicator yok):**
+```css
+.button {
+  outline: none;  /* Focus indicator kaldırıldı */
+}
+```
+
+**✅ Doğru (Visible focus indicator):**
+```css
+.button {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+}
+
+/* Veya custom focus style */
+.button:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 4px rgba(0, 102, 204, 0.3);
+}
+```
+
+---
+
+## 📝 Form Accessibility
+
+### 1. Labels
+
+**❌ Yanlış (Label yok):**
+```typescript
+<input type="text" placeholder="Enter email" />
+```
+
+**✅ Doğru (Proper label):**
+```typescript
+<label htmlFor="email">Email address</label>
+<input
+  id="email"
+  type="email"
+  aria-required="true"
+  aria-describedby="email-error"
+/>
+<span id="email-error" role="alert" aria-live="polite">
+  {errors.email}
+</span>
+```
+
+---
+
+### 2. Error Messages
+
+**✅ Doğru (Accessible error messages):**
+```typescript
+function EmailInput() {
+  const [error, setError] = useState<string>("");
+  
+  return (
+    <div>
+      <label htmlFor="email">Email</label>
+      <input
+        id="email"
+        type="email"
+        aria-invalid={!!error}
+        aria-describedby={error ? "email-error" : undefined}
+        aria-required="true"
+      />
+      {error && (
+        <span
+          id="email-error"
+          role="alert"
+          aria-live="polite"
+        >
+          {error}
+        </span>
+      )}
+    </div>
+  );
+}
+```
+
+---
+
+### 3. Required Fields
+
+**✅ Doğru (Required field indication):**
+```typescript
+<label htmlFor="email">
+  Email
+  <span aria-label="required">*</span>
+</label>
+<input
+  id="email"
+  type="email"
+  aria-required="true"
+  required
+/>
+```
+
+---
+
+## 🖼️ Images & Media
+
+### 1. Alt Text
+
+**❌ Yanlış (Alt text yok):**
+```typescript
+<img src="/logo.png" />
+```
+
+**✅ Doğru (Descriptive alt text):**
+```typescript
+<img
+  src="/logo.png"
+  alt="Company logo"
+/>
+
+<img
+  src="/chart.png"
+  alt="Sales chart showing 25% increase in Q4 2023"
+/>
+```
+
+**Decorative images:**
+```typescript
+<img
+  src="/decoration.png"
+  alt=""
+  role="presentation"
+/>
+```
+
+---
+
+### 2. Icons
+
+**✅ Doğru (Icon with label):**
+```typescript
+<button aria-label="Delete item">
+  <Icon name="trash" aria-hidden="true" />
+</button>
+
+// Veya visible text ile
+<button>
+  <Icon name="trash" aria-hidden="true" />
+  Delete
+</button>
+```
+
+---
+
+## 📱 Responsive & Mobile
+
+### 1. Touch Targets
+
+**WCAG Requirement:**
+- Minimum touch target size: **44x44 pixels**
+
+**✅ Doğru:**
+```css
+.button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 12px;
+}
+```
+
+---
+
+### 2. Viewport Meta
+
+**✅ Doğru:**
+```html
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+```
+
+---
+
+## 🔍 Testing Accessibility
+
+### 1. Automated Testing
+
+**Tools:**
+- [axe DevTools](https://www.deque.com/axe/devtools/)
+- [WAVE](https://wave.webaim.org/)
+- [Lighthouse](https://developers.google.com/web/tools/lighthouse)
+
+**✅ Doğru (Automated testing):**
+```typescript
+import { axe, toHaveNoViolations } from "jest-axe";
+
+expect.extend(toHaveNoViolations);
+
+it("should have no accessibility violations", async () => {
+  const { container } = render(<Component />);
+  const results = await axe(container);
+  expect(results).toHaveNoViolations();
+});
+```
+
+---
+
+### 2. Manual Testing
+
+**Checklist:**
+- [ ] Keyboard navigation çalışıyor mu?
+- [ ] Screen reader ile test edildi mi?
+- [ ] Focus indicators görünür mü?
+- [ ] Color contrast yeterli mi?
+- [ ] Alt text'ler var mı?
+- [ ] ARIA labels doğru mu?
+
+---
+
+## 📋 Accessibility Checklist
+
+### Keyboard Navigation
+- [ ] Tüm interactive elements keyboard ile erişilebilir mi?
+- [ ] Tab order mantıklı mı?
+- [ ] Focus indicators görünür mü?
+- [ ] Escape key ile modals kapanıyor mu?
+
+### ARIA
+- [ ] ARIA labels var mı? (icon-only buttons için)
+- [ ] ARIA roles doğru mu?
+- [ ] ARIA states güncel mi? (aria-expanded, aria-pressed)
+- [ ] ARIA live regions var mı? (dynamic content için)
+
+### Visual
+- [ ] Color contrast WCAG AA uyumlu mu?
+- [ ] Sadece renk ile bilgi verilmiyor mu?
+- [ ] Focus indicators görünür mü?
+
+### Forms
+- [ ] Labels var mı?
+- [ ] Error messages accessible mi?
+- [ ] Required fields işaretli mi?
+
+### Images & Media
+- [ ] Alt text'ler var mı?
+- [ ] Decorative images `alt=""` mi?
+- [ ] Icons accessible mi?
+
+---
+
+## 🔗 Referanslar
+
+- [WCAG 2.1 Guidelines](https://www.w3.org/WAI/WCAG21/quickref/)
+- [WebAIM](https://webaim.org/)
+- [MDN Accessibility](https://developer.mozilla.org/en-US/docs/Web/Accessibility)
+- [React Accessibility](https://react.dev/learn/accessibility)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

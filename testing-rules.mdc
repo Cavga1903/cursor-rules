@@ -1,0 +1,445 @@
+---
+alwaysApply: true
+---
+
+# Testing Rules - Test Best Practices
+
+> ⚠️ **ÖNEMLİ:** Bu dosya her zaman uygulanır. Test yazarken bu kurallara uyun.
+
+---
+
+## 🎯 Test Stratejisi
+
+### 1. Test Piramidi
+
+```
+        /\
+       /  \      E2E Tests (Az)
+      /____\
+     /      \    Integration Tests (Orta)
+    /________\
+   /          \  Unit Tests (Çok)
+  /____________\
+```
+
+**Öncelik Sırası:**
+1. **Unit Tests** - Fonksiyonlar, utility functions, pure functions
+2. **Integration Tests** - Component interactions, API calls, database
+3. **E2E Tests** - Critical user flows (login, checkout, vb.)
+
+---
+
+### 2. Test Coverage Hedefleri
+
+- **Critical Path:** %100 coverage (authentication, payment, stock)
+- **Business Logic:** %80+ coverage
+- **UI Components:** %60+ coverage
+- **Overall:** %60+ coverage
+
+---
+
+## 🧪 Unit Testing
+
+### 1. Test Structure (AAA Pattern)
+
+**✅ Doğru:**
+```typescript
+describe("calculateTotal", () => {
+  it("should return sum of all item prices", () => {
+    // Arrange
+    const items = [
+      { id: "1", price: 100 },
+      { id: "2", price: 200 },
+      { id: "3", price: 300 },
+    ];
+    
+    // Act
+    const result = calculateTotal(items);
+    
+    // Assert
+    expect(result).toBe(600);
+  });
+});
+```
+
+---
+
+### 2. Test Naming
+
+**✅ Doğru:**
+```typescript
+describe("UserService", () => {
+  describe("login", () => {
+    it("should return user when credentials are valid", () => {});
+    it("should throw error when credentials are invalid", () => {});
+    it("should throw error when user is locked", () => {});
+  });
+});
+```
+
+**❌ Yanlış:**
+```typescript
+it("test1", () => {});
+it("should work", () => {});
+```
+
+---
+
+### 3. Test Isolation
+
+**❌ Yanlış (Shared state):**
+```typescript
+let user: User;
+
+beforeAll(() => {
+  user = createUser();  // Shared state
+});
+
+it("test 1", () => {
+  user.name = "John";  // Diğer testleri etkileyebilir
+});
+```
+
+**✅ Doğru (Isolated state):**
+```typescript
+it("test 1", () => {
+  const user = createUser();  // Her test için yeni instance
+  user.name = "John";
+  expect(user.name).toBe("John");
+});
+```
+
+---
+
+## 🧩 Component Testing
+
+### 1. React Testing Library
+
+**❌ Yanlış (Implementation details test):**
+```typescript
+it("should call handleClick when button is clicked", () => {
+  const handleClick = jest.fn();
+  const { getByTestId } = render(<Button onClick={handleClick} />);
+  
+  getByTestId("button").click();  // Implementation detail
+  expect(handleClick).toHaveBeenCalled();
+});
+```
+
+**✅ Doğru (User behavior test):**
+```typescript
+it("should submit form when submit button is clicked", () => {
+  const onSubmit = jest.fn();
+  const { getByRole } = render(<Form onSubmit={onSubmit} />);
+  
+  // User gibi davran
+  fireEvent.change(getByRole("textbox", { name: /email/i }), {
+    target: { value: "test@example.com" },
+  });
+  fireEvent.click(getByRole("button", { name: /submit/i }));
+  
+  expect(onSubmit).toHaveBeenCalledWith({
+    email: "test@example.com",
+  });
+});
+```
+
+---
+
+### 2. Query Priority (React Testing Library)
+
+**Öncelik Sırası:**
+1. `getByRole` - Accessibility için en iyi
+2. `getByLabelText` - Form elements için
+3. `getByPlaceholderText` - Input fields için
+4. `getByText` - Text content için
+5. `getByTestId` - Son çare (implementation detail)
+
+**✅ Doğru:**
+```typescript
+const { getByRole } = render(<Button>Submit</Button>);
+const button = getByRole("button", { name: /submit/i });
+```
+
+**❌ Yanlış:**
+```typescript
+const { getByTestId } = render(<Button data-testid="submit-btn">Submit</Button>);
+const button = getByTestId("submit-btn");  // Implementation detail
+```
+
+---
+
+### 3. Async Testing
+
+**❌ Yanlış (setTimeout):**
+```typescript
+it("should load data", async () => {
+  loadData();
+  setTimeout(() => {
+    expect(data).toBeDefined();
+  }, 1000);
+});
+```
+
+**✅ Doğru (waitFor):**
+```typescript
+it("should load data", async () => {
+  loadData();
+  await waitFor(() => {
+    expect(data).toBeDefined();
+  });
+});
+```
+
+**Veya findBy queries:**
+```typescript
+it("should display user name", async () => {
+  render(<UserProfile userId="123" />);
+  const name = await screen.findByText("John Doe");
+  expect(name).toBeInTheDocument();
+});
+```
+
+---
+
+## 🔗 Integration Testing
+
+### 1. API Testing
+
+**✅ Doğru (Mock API):**
+```typescript
+import { vi } from "vitest";
+import { invoke } from "@tauri-apps/api/tauri";
+
+vi.mock("@tauri-apps/api/tauri");
+
+it("should fetch products", async () => {
+  const mockProducts = [
+    { id: "1", name: "Product 1" },
+    { id: "2", name: "Product 2" },
+  ];
+  
+  (invoke as any).mockResolvedValue(mockProducts);
+  
+  const products = await fetchProducts();
+  
+  expect(products).toEqual(mockProducts);
+  expect(invoke).toHaveBeenCalledWith("get_products");
+});
+```
+
+---
+
+### 2. Database Testing
+
+**✅ Doğru (Test database):**
+```typescript
+import { createTestDatabase } from "./test-utils";
+
+it("should create product", async () => {
+  const db = await createTestDatabase();
+  
+  const product = await createProduct(db, {
+    name: "Test Product",
+    price: 1000,
+  });
+  
+  expect(product.id).toBeDefined();
+  expect(product.name).toBe("Test Product");
+  
+  await db.close();
+});
+```
+
+---
+
+## 🎭 Mocking & Stubbing
+
+### 1. Function Mocking
+
+**✅ Doğru:**
+```typescript
+import { vi } from "vitest";
+
+const mockFetch = vi.fn();
+global.fetch = mockFetch;
+
+it("should fetch data", async () => {
+  mockFetch.mockResolvedValue({
+    ok: true,
+    json: async () => ({ data: "test" }),
+  });
+  
+  const result = await fetchData();
+  
+  expect(result).toEqual({ data: "test" });
+  expect(mockFetch).toHaveBeenCalledWith("/api/data");
+});
+```
+
+---
+
+### 2. Module Mocking
+
+**✅ Doğru:**
+```typescript
+import { vi } from "vitest";
+
+vi.mock("./api", () => ({
+  fetchUser: vi.fn().mockResolvedValue({ id: "1", name: "John" }),
+}));
+
+it("should use mocked API", async () => {
+  const user = await fetchUser("1");
+  expect(user.name).toBe("John");
+});
+```
+
+---
+
+## 📊 Test Coverage
+
+### 1. Coverage Thresholds
+
+**vitest.config.ts:**
+```typescript
+export default defineConfig({
+  test: {
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      thresholds: {
+        lines: 60,
+        functions: 60,
+        branches: 60,
+        statements: 60,
+      },
+      exclude: [
+        "node_modules/",
+        "**/*.test.ts",
+        "**/*.spec.ts",
+      ],
+    },
+  },
+});
+```
+
+---
+
+### 2. Critical Path Coverage
+
+**✅ Doğru (Critical path %100):**
+```typescript
+// Critical: Authentication
+describe("Authentication", () => {
+  it("should login with valid credentials", () => {});
+  it("should reject invalid credentials", () => {});
+  it("should handle rate limiting", () => {});
+  it("should expire session after timeout", () => {});
+  // %100 coverage hedefi
+});
+```
+
+---
+
+## 🚫 Anti-Patterns
+
+### 1. Test Implementation Details
+
+**❌ Yanlış:**
+```typescript
+it("should set state", () => {
+  const component = render(<Component />);
+  expect(component.state.count).toBe(0);  // Implementation detail
+});
+```
+
+**✅ Doğru:**
+```typescript
+it("should display initial count", () => {
+  render(<Component />);
+  expect(screen.getByText("Count: 0")).toBeInTheDocument();
+});
+```
+
+---
+
+### 2. Over-Mocking
+
+**❌ Yanlış:**
+```typescript
+const mockAdd = vi.fn();
+const mockSubtract = vi.fn();
+const mockMultiply = vi.fn();
+// Her şeyi mock'ladık - gerçek logic test edilmiyor
+```
+
+**✅ Doğru:**
+```typescript
+// Sadece external dependencies'i mock'la
+vi.mock("./api");
+// Internal logic'i test et
+```
+
+---
+
+### 3. Flaky Tests
+
+**❌ Yanlış (Timing-dependent):**
+```typescript
+it("should update after 1 second", () => {
+  updateData();
+  setTimeout(() => {
+    expect(data).toBeUpdated();
+  }, 1000);
+});
+```
+
+**✅ Doğru (Deterministic):**
+```typescript
+it("should update data", async () => {
+  updateData();
+  await waitFor(() => {
+    expect(data).toBeUpdated();
+  });
+});
+```
+
+---
+
+## 📋 Test Checklist
+
+### Unit Tests
+- [ ] AAA pattern kullanıldı mı? (Arrange, Act, Assert)
+- [ ] Test isolation var mı? (Shared state yok)
+- [ ] Test naming açıklayıcı mı?
+- [ ] Edge cases test edildi mi?
+
+### Component Tests
+- [ ] React Testing Library kullanıldı mı?
+- [ ] Query priority doğru mu? (getByRole > getByTestId)
+- [ ] User behavior test edildi mi? (Implementation details değil)
+- [ ] Async operations doğru handle edildi mi?
+
+### Integration Tests
+- [ ] API calls mock'landı mı?
+- [ ] Database operations test edildi mi?
+- [ ] Component interactions test edildi mi?
+
+### Coverage
+- [ ] Critical path %100 coverage var mı?
+- [ ] Overall coverage %60+ var mı?
+- [ ] Coverage thresholds tanımlı mı?
+
+---
+
+## 🔗 Referanslar
+
+- [React Testing Library](https://testing-library.com/react)
+- [Vitest Documentation](https://vitest.dev/)
+- [Testing Best Practices](https://kentcdodds.com/blog/common-mistakes-with-react-testing-library)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

@@ -1,0 +1,284 @@
+---
+alwaysApply: false
+---
+
+# BMad Principles - Temel Prensipler ve Kurallar
+
+> ⚠️ **ÖNEMLİ:** Bu dosya BMad kullanıyorsanız uygulanır. BMad'ın temel prensiplerini anlamak için bu kurallara uyun.
+
+---
+
+## 🎯 BMad Temel Prensipleri
+
+### 1. Structured Workflow Approach
+
+**BMad, yapılandırılmış workflow'lar kullanır:**
+- Her workflow belirli bir amaca hizmet eder
+- Workflow'lar birbirine bağlıdır (dependencies)
+- Workflow output'ları bir sonraki workflow'un input'u olur
+
+**Kural:** Workflow'ları sırasıyla takip edin, atlamayın.
+
+---
+
+### 2. Artifact-Driven Development
+
+**BMad, artifact'lar (çıktılar) üzerine kuruludur:**
+- Her workflow belirli artifact'lar üretir
+- Artifact'lar dokümante edilmiş, yapılandırılmış çıktılardır
+- Artifact'lar bir sonraki adımın temelini oluşturur
+
+**Kural:** Artifact'ları doğru klasörlere kaydedin ve güncel tutun.
+
+---
+
+### 3. Context-Aware Development
+
+**BMad, context-aware (bağlam-bilinçli) çalışır:**
+- Mevcut proje context'ini anlar
+- İlgili dosyaları kategorize eder
+- Workflow'ları context'e göre çalıştırır
+
+**Kural:** `bmad-context-checker.mdc` ile context'i kontrol edin.
+
+---
+
+## 📁 BMad Klasör Yapısı
+
+### Input: `_bmad/`
+
+**Yapı:**
+```
+_bmad/
+├── _config/          # BMad configuration
+│   ├── agents/       # Agent tanımları
+│   ├── workflows/    # Workflow tanımları
+│   └── manifest.yaml # Manifest dosyası
+├── bmm/              # BMad Methodology
+│   ├── workflows/    # Workflow tanımları
+│   ├── agents/       # Agent tanımları
+│   └── data/         # Template'ler
+└── core/             # Core BMad
+    ├── workflows/    # Core workflows
+    └── resources/    # Shared resources
+```
+
+**Kural:** `_bmad/` klasörünü değiştirmeyin, sadece kullanın.
+
+---
+
+### Output: `_bmad-output/`
+
+**Yapı:**
+```
+_bmad-output/
+├── planning-artifacts/        # Planlama çıktıları
+│   ├── prd.md                # Product Requirements Document
+│   ├── epics.md              # Epics ve stories
+│   ├── architecture.md       # Architecture document
+│   ├── roadmap.mdc           # Roadmap
+│   └── ux-design-specification.md
+├── implementation-artifacts/  # Implementation çıktıları
+│   └── stories/              # Story files
+├── project-context.md        # Project context
+└── component-inventory.md    # Component inventory
+```
+
+**Kural:** Output'ları doğru klasörlere kaydedin.
+
+---
+
+## 🔄 BMad Workflow Döngüsü
+
+### 1. Analysis Phase
+
+**Workflows:**
+- `research` - Domain, market, technical research
+- `create-product-brief` - Product brief
+
+**Output:**
+- Research artifacts
+- Product brief
+
+---
+
+### 2. Planning Phase
+
+**Workflows:**
+- `prd` - Product Requirements Document
+- `create-ux-design` - UX design
+- `create-epics-and-stories` - Epics & Stories
+
+**Output:**
+- PRD document
+- UX design specification
+- Epics & Stories
+
+---
+
+### 3. Solutioning Phase
+
+**Workflows:**
+- `create-architecture` - Architecture
+- `check-implementation-readiness` - Implementation readiness
+
+**Output:**
+- Architecture document
+- Implementation readiness report
+
+---
+
+### 4. Implementation Phase
+
+**Workflows:**
+- `create-story` - Story oluşturma
+- `dev-story` - Story geliştirme
+- `code-review` - Code review
+- `sprint-planning` - Sprint planning
+
+**Output:**
+- Story files
+- Code review reports
+- Sprint plans
+
+---
+
+## 📋 BMad Kullanım Kuralları
+
+### 1. Workflow Dependencies
+
+**✅ Doğru (Dependency sırası):**
+```
+1. research → create-product-brief
+2. prd → create-ux-design
+3. prd → create-epics-and-stories
+4. create-architecture → check-implementation-readiness
+5. create-epics-and-stories → dev-story
+```
+
+**❌ Yanlış (Dependency atlama):**
+```
+# PRD olmadan epics oluşturmak
+create-epics-and-stories  # PRD dependency yok!
+```
+
+---
+
+### 2. Artifact Maintenance
+
+**✅ Doğru (Artifact güncelleme):**
+- Implementation sonrası → Story'yi tamamla
+- Epic tamamlandığında → Epic durumunu güncelle
+- Architecture değiştiğinde → Architecture doc'u güncelle
+
+**❌ Yanlış (Artifact ignore):**
+- Workflow çalıştırdı ama output'u okumadı
+- Artifact'ı güncellemedi
+- Eski artifact'ları kullandı
+
+---
+
+### 3. Context Awareness
+
+**✅ Doğru (Context kullanımı):**
+- Workflow başlamadan önce → Context'i kontrol et
+- İlgili dosyaları oku
+- Mevcut artifact'ları kontrol et
+
+**❌ Yanlış (Context ignore):**
+- Context'i kontrol etmeden workflow başlattı
+- İlgili dosyaları okumadı
+- Mevcut artifact'ları görmezden geldi
+
+---
+
+## 🚫 Anti-Patterns
+
+### 1. Workflow Atlama
+
+**❌ Yanlış:**
+```bash
+# PRD olmadan epics oluşturmak
+bmad workflow create-epics-and-stories
+```
+
+**✅ Doğru:**
+```bash
+# Önce PRD
+bmad workflow prd -c
+# Sonra epics
+bmad workflow create-epics-and-stories
+```
+
+---
+
+### 2. Artifact Ignore
+
+**❌ Yanlış:**
+```bash
+# Workflow çalıştırdı ama output'u okumadı
+bmad workflow prd -c
+# PRD'yi okumadı, direkt implementation'a başladı
+```
+
+**✅ Doğru:**
+```bash
+# Workflow çalıştır
+bmad workflow prd -c
+# Output'u oku ve anla
+cat _bmad-output/planning-artifacts/prd.md
+# Sonra bir sonraki workflow'a geç
+```
+
+---
+
+### 3. Context Ignore
+
+**❌ Yanlış:**
+```bash
+# Context'i kontrol etmeden workflow başlattı
+bmad workflow dev-story
+# Mevcut story'yi okumadı
+```
+
+**✅ Doğru:**
+```bash
+# Context'i kontrol et
+# bmad-context-checker.mdc ile ilgili dosyaları kontrol et
+# Mevcut story'yi oku
+# Sonra workflow'u çalıştır
+bmad workflow dev-story
+```
+
+---
+
+## 📋 BMad Checklist
+
+### Workflow Başlamadan Önce
+- [ ] Doğru workflow seçildi mi?
+- [ ] Dependencies tamamlandı mı?
+- [ ] Gerekli input'lar hazır mı?
+- [ ] Context kontrol edildi mi?
+
+### Workflow Sırasında
+- [ ] Workflow adımları takip ediliyor mu?
+- [ ] Output'lar doğru klasörlere kaydediliyor mu?
+- [ ] Artifact'lar güncel tutuluyor mu?
+
+### Workflow Sonrası
+- [ ] Output'lar kontrol edildi mi?
+- [ ] Artifact'lar güncellendi mi?
+- [ ] Bir sonraki workflow hazır mı?
+
+---
+
+## 🔗 Referanslar
+
+- BMad workflows: `_bmad/bmm/workflows/`
+- BMad output'ları: `_bmad-output/`
+- BMad context checker: `bmad-context-checker.mdc`
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

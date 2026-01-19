@@ -1,0 +1,338 @@
+---
+alwaysApply: false
+---
+
+# BMad Workflows - Workflow Kullanım Kuralları
+
+> ⚠️ **ÖNEMLİ:** Bu dosya BMad kullanıyorsanız uygulanır. BMad workflow'larını doğru kullanmak için bu kurallara uyun.
+
+---
+
+## 🎯 BMad Workflow Kategorileri
+
+### 1. Analysis Workflows (Analiz)
+
+**Workflows:**
+- `research` - Domain, market, technical research
+- `create-product-brief` - Product brief oluşturma
+
+**Kullanım:**
+```bash
+# Research workflow
+bmad workflow research
+
+# Product brief
+bmad workflow create-product-brief
+```
+
+---
+
+### 2. Planning Workflows (Planlama)
+
+**Workflows:**
+- `prd` - Product Requirements Document (Create/Validate/Edit)
+- `create-ux-design` - UX design oluşturma
+- `create-epics-and-stories` - Epic ve story oluşturma
+
+**Kullanım:**
+```bash
+# PRD - Create mode
+bmad workflow prd -c
+
+# PRD - Validate mode
+bmad workflow prd -v
+
+# PRD - Edit mode
+bmad workflow prd -e
+
+# UX Design
+bmad workflow create-ux-design
+
+# Epics & Stories
+bmad workflow create-epics-and-stories
+```
+
+---
+
+### 3. Solutioning Workflows (Çözümleme)
+
+**Workflows:**
+- `create-architecture` - Architecture oluşturma
+- `check-implementation-readiness` - Implementation hazırlık kontrolü
+
+**Kullanım:**
+```bash
+# Architecture
+bmad workflow create-architecture
+
+# Implementation readiness
+bmad workflow check-implementation-readiness
+```
+
+---
+
+### 4. Implementation Workflows (Geliştirme)
+
+**Workflows:**
+- `dev-story` - Story geliştirme
+- `create-story` - Story oluşturma
+- `code-review` - Code review
+- `sprint-planning` - Sprint planning
+- `sprint-status` - Sprint durumu
+- `retrospective` - Retrospective
+- `correct-course` - Course correction
+
+**Kullanım:**
+```bash
+# Dev story
+bmad workflow dev-story
+
+# Create story
+bmad workflow create-story
+
+# Code review
+bmad workflow code-review
+
+# Sprint planning
+bmad workflow sprint-planning
+```
+
+---
+
+### 5. Documentation Workflows (Dokümantasyon)
+
+**Workflows:**
+- `document-project` - Project dokümantasyonu
+- `generate-project-context` - Project context oluşturma
+
+**Kullanım:**
+```bash
+# Document project
+bmad workflow document-project
+
+# Generate project context
+bmad workflow generate-project-context
+```
+
+---
+
+### 6. Quick Flow Workflows (Hızlı Akış)
+
+**Workflows:**
+- `quick-dev` - Quick development flow
+- `quick-spec` - Quick specification flow
+
+**Kullanım:**
+```bash
+# Quick dev
+bmad workflow quick-dev
+
+# Quick spec
+bmad workflow quick-spec
+```
+
+---
+
+## 📋 Workflow Kullanım Kuralları
+
+### 1. Workflow Seçimi
+
+**✅ Doğru (Doğru workflow seçimi):**
+- Yeni feature için → `create-epics-and-stories` → `dev-story`
+- PRD oluşturmak için → `prd -c`
+- Architecture tasarlamak için → `create-architecture`
+- Code review için → `code-review`
+
+**❌ Yanlış (Yanlış workflow seçimi):**
+- Story yazmadan `dev-story` başlatmak
+- PRD olmadan `create-epics-and-stories` çalıştırmak
+- Architecture olmadan implementation'a başlamak
+
+---
+
+### 2. Workflow Sırası
+
+**Önerilen Sıra:**
+```
+1. Analysis
+   ├─ research
+   └─ create-product-brief
+
+2. Planning
+   ├─ prd (create)
+   ├─ create-ux-design
+   └─ create-epics-and-stories
+
+3. Solutioning
+   ├─ create-architecture
+   └─ check-implementation-readiness
+
+4. Implementation
+   ├─ create-story
+   ├─ dev-story
+   └─ code-review
+```
+
+---
+
+### 3. Workflow Output'ları
+
+**Her workflow'un output'u:**
+- `research` → Research artifacts (`_bmad-output/planning-artifacts/`)
+- `prd` → PRD document (`_bmad-output/planning-artifacts/prd.md`)
+- `create-epics-and-stories` → Epics & Stories (`_bmad-output/planning-artifacts/epics.md`)
+- `create-architecture` → Architecture doc (`_bmad-output/planning-artifacts/architecture.md`)
+- `dev-story` → Implementation artifacts (`_bmad-output/implementation-artifacts/`)
+
+**Kural:** Workflow output'larını doğru klasörlere kaydedin.
+
+---
+
+## 🔄 Workflow Entegrasyonu
+
+### 1. Development Workflow ile Entegrasyon
+
+**✅ Doğru (Workflow + Development):**
+```bash
+# 1. Story oluştur
+bmad workflow create-story
+
+# 2. Story'yi geliştir
+bmad workflow dev-story
+
+# 3. Code yaz (development-workflow.mdc kurallarına uy)
+# 4. Code review
+bmad workflow code-review
+```
+
+---
+
+### 2. Roadmap ile Entegrasyon
+
+**✅ Doğru (Workflow + Roadmap):**
+- Epic oluştururken → `roadmaprules.mdc` önceliklerine uy
+- Story yazarken → Epic durumunu güncelle
+- Implementation sonrası → Roadmap'te tamamlanan işleri işaretle
+
+---
+
+### 3. BMad Context Checker ile Entegrasyon
+
+**✅ Doğru (Workflow + Context Checker):**
+- Workflow çalıştırmadan önce → `bmad-context-checker.mdc` ile ilgili dosyaları kontrol et
+- Workflow sonrası → Output'ları doğru klasörlere kaydet
+- Context checker'ın kategorize ettiği dosyaları güncelle
+
+---
+
+## 📁 BMad Klasör Yapısı
+
+### Input Klasörleri (`_bmad/`)
+```
+_bmad/
+├── bmm/
+│   ├── workflows/        # Workflow tanımları
+│   ├── agents/           # Agent tanımları
+│   └── data/             # Template'ler ve standartlar
+└── core/
+    ├── workflows/        # Core workflows
+    └── resources/        # Shared resources
+```
+
+### Output Klasörleri (`_bmad-output/`)
+```
+_bmad-output/
+├── planning-artifacts/   # PRD, Epics, Architecture, Roadmap
+├── implementation-artifacts/  # Story files, Code reviews
+└── project-context.md    # Project context
+```
+
+**Kural:** Workflow output'larını doğru klasörlere kaydedin.
+
+---
+
+## 🚫 Anti-Patterns
+
+### 1. Workflow Atlama
+
+**❌ Yanlış:**
+```bash
+# PRD olmadan epics oluşturmak
+bmad workflow create-epics-and-stories  # PRD yok!
+```
+
+**✅ Doğru:**
+```bash
+# Önce PRD
+bmad workflow prd -c
+# Sonra epics
+bmad workflow create-epics-and-stories
+```
+
+---
+
+### 2. Workflow Output'larını Ignore Etme
+
+**❌ Yanlış:**
+```bash
+# Workflow çalıştırdı ama output'ları kontrol etmedi
+bmad workflow prd -c
+# PRD'yi okumadı, direkt implementation'a başladı
+```
+
+**✅ Doğru:**
+```bash
+# Workflow çalıştır
+bmad workflow prd -c
+# Output'u oku ve anla
+# Sonra bir sonraki workflow'a geç
+```
+
+---
+
+### 3. Workflow Modlarını Karıştırma
+
+**❌ Yanlış:**
+```bash
+# PRD validate etmek istiyor ama create modunda çalıştırdı
+bmad workflow prd -c  # Yanlış mod!
+```
+
+**✅ Doğru:**
+```bash
+# Doğru mod seç
+bmad workflow prd -v  # Validate mode
+```
+
+---
+
+## 📋 Workflow Checklist
+
+### Workflow Başlamadan Önce
+- [ ] Doğru workflow seçildi mi?
+- [ ] Önceki workflow'lar tamamlandı mı? (dependencies)
+- [ ] Gerekli input'lar hazır mı?
+- [ ] BMad context checker çalıştırıldı mı?
+
+### Workflow Sırasında
+- [ ] Workflow adımları takip ediliyor mu?
+- [ ] Output'lar doğru klasörlere kaydediliyor mu?
+- [ ] Roadmap kurallarına uyuluyor mu?
+
+### Workflow Sonrası
+- [ ] Output'lar kontrol edildi mi?
+- [ ] Roadmap güncellendi mi?
+- [ ] Bir sonraki workflow hazır mı?
+
+---
+
+## 🔗 Referanslar
+
+- [BMad Documentation](https://github.com/bmad-framework/bmad)
+- BMad workflow'ları: `_bmad/bmm/workflows/`
+- BMad output'ları: `_bmad-output/`
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0

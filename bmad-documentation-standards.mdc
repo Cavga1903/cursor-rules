@@ -1,0 +1,345 @@
+---
+alwaysApply: false
+---
+
+# BMad Documentation Standards - Dokümantasyon Standartları
+
+> ⚠️ **ÖNEMLİ:** Bu dosya BMad kullanıyorsanız uygulanır. BMad dokümantasyon standartlarına uyun.
+
+---
+
+## 🎯 BMad Dokümantasyon Prensipleri
+
+### 1. CommonMark Strict Compliance
+
+**Kural:** Tüm dokümantasyon CommonMark specification'a uymalı.
+
+**✅ Doğru (CommonMark):**
+```markdown
+# Title
+
+## Subtitle
+
+### Section
+
+- List item 1
+- List item 2
+
+**Bold text** and *italic text*.
+```
+
+**❌ Yanlış (Non-CommonMark):**
+```markdown
+Title
+=====  # Setext style - CommonMark'da yok
+
+- List item 1
+* List item 2  # Mixed list markers
+```
+
+---
+
+### 2. NO TIME ESTIMATES
+
+**Kritik Kural:** ASLA zaman tahmini eklemeyin.
+
+**❌ Yanlış:**
+```markdown
+This workflow takes 30-60 minutes.
+Reading time: 5 minutes.
+Implementation: 2-8 hours.
+```
+
+**✅ Doğru:**
+```markdown
+This workflow includes the following steps:
+1. Research phase
+2. Analysis phase
+3. Documentation phase
+```
+
+**Neden?**
+- Zaman proje karmaşıklığına göre değişir
+- Takım deneyimine göre değişir
+- Tooling ve environment'a göre değişir
+- Beklenmeyen engeller olabilir
+
+**Bunun yerine:** Workflow adımlarına, bağımlılıklara ve çıktılara odaklanın.
+
+---
+
+## 📝 CommonMark Essentials
+
+### 1. Headers
+
+**✅ Doğru (ATX-style):**
+```markdown
+# Title
+## Subtitle
+### Section
+#### Subsection
+```
+
+**Kurallar:**
+- ATX-style ONLY (`#` kullan, `===` değil)
+- `#` sonrası tek boşluk: `# Title` (NOT `#Title`)
+- Trailing `#` yok: `# Title` (NOT `# Title #`)
+- Hierarchical order: h1→h2→h3 (h1→h3 atlama)
+
+**❌ Yanlış:**
+```markdown
+Title
+=====  # Setext style
+
+#Title  # Space yok
+
+# Title #  # Trailing #
+```
+
+---
+
+### 2. Code Blocks
+
+**✅ Doğru (Fenced blocks):**
+````markdown
+```javascript
+const example = 'code';
+```
+````
+
+**Kurallar:**
+- Fenced blocks kullan (` ``` `)
+- Language identifier ekle
+- Indented code blocks kullanma (ambiguous)
+
+**❌ Yanlış:**
+```markdown
+    const example = 'code';  # Indented - ambiguous
+```
+
+---
+
+### 3. Lists
+
+**✅ Doğru (Consistent markers):**
+```markdown
+- Item 1
+- Item 2
+  - Nested item
+  - Another nested item
+```
+
+**Kurallar:**
+- Consistent markers (hepsi `-` veya hepsi `*`)
+- Proper indentation (2 veya 4 spaces, consistent)
+- Blank line before/after list
+
+**❌ Yanlış:**
+```markdown
+- Item 1
+* Item 2  # Mixed markers
+```
+
+---
+
+### 4. Links
+
+**✅ Doğru:**
+```markdown
+[Link text](https://example.com)
+
+[Reference link][ref]
+
+[ref]: https://example.com
+```
+
+**Kurallar:**
+- Inline: `[text](url)`
+- Reference: `[text][ref]` then `[ref]: url` at bottom
+- Bare URLs: `<>` brackets kullan
+
+**❌ Yanlış:**
+```markdown
+https://example.com  # Bare URL without <>
+```
+
+---
+
+### 5. Emphasis
+
+**✅ Doğru:**
+```markdown
+**Bold text**
+*Italic text*
+```
+
+**Kurallar:**
+- Bold: `**text**` or `__text__`
+- Italic: `*text*` or `_text_`
+- Consistent style within document
+
+---
+
+### 6. Line Breaks
+
+**✅ Doğru:**
+```markdown
+Paragraph 1.
+
+Paragraph 2.
+```
+
+**Kurallar:**
+- Two spaces at end of line + newline, OR
+- Blank line between paragraphs
+- Single line breaks ignored
+
+---
+
+## 📊 Mermaid Diagrams
+
+### 1. Valid Mermaid Syntax
+
+**✅ Doğru:**
+````markdown
+```mermaid
+graph TD
+    A[Start] --> B[Process]
+    B --> C[End]
+```
+````
+
+**Kurallar:**
+- Always specify diagram type first line
+- Use valid Mermaid v10+ syntax
+- Test diagrams before committing
+
+**❌ Yanlış:**
+````markdown
+```mermaid
+A --> B  # Diagram type yok
+```
+````
+
+---
+
+## 📁 Documentation Structure
+
+### 1. Planning Artifacts
+
+**Klasör:** `_bmad-output/planning-artifacts/`
+
+**Dosyalar:**
+- `prd.md` - Product Requirements Document
+- `epics.md` - Epics ve stories
+- `architecture.md` - Architecture document
+- `roadmap.mdc` - Roadmap
+- `ux-design-specification.md` - UX design
+
+**Kural:** Her dosya CommonMark strict compliance.
+
+---
+
+### 2. Implementation Artifacts
+
+**Klasör:** `_bmad-output/implementation-artifacts/`
+
+**Dosyalar:**
+- `stories/` - Story files
+- Code review reports
+- Sprint plans
+
+**Kural:** Implementation artifacts dokümante edilmeli.
+
+---
+
+## 🚫 Documentation Anti-Patterns
+
+### 1. Time Estimates
+
+**❌ Yanlış:**
+```markdown
+This workflow takes 30-60 minutes.
+Reading time: 5 minutes.
+```
+
+**✅ Doğru:**
+```markdown
+This workflow includes:
+1. Research phase
+2. Analysis phase
+3. Documentation phase
+```
+
+---
+
+### 2. Non-CommonMark Syntax
+
+**❌ Yanlış:**
+```markdown
+Title
+=====
+
+    Code block  # Indented
+```
+
+**✅ Doğru:**
+```markdown
+# Title
+
+```code
+Code block
+```
+```
+
+---
+
+### 3. Inconsistent Formatting
+
+**❌ Yanlış:**
+```markdown
+- Item 1
+* Item 2
++ Item 3
+```
+
+**✅ Doğru:**
+```markdown
+- Item 1
+- Item 2
+- Item 3
+```
+
+---
+
+## 📋 Documentation Checklist
+
+### CommonMark Compliance
+- [ ] ATX-style headers kullanıldı mı?
+- [ ] Fenced code blocks kullanıldı mı?
+- [ ] Consistent list markers var mı?
+- [ ] Proper link format kullanıldı mı?
+- [ ] Time estimates yok mu?
+
+### Structure
+- [ ] Hierarchical header order doğru mu?
+- [ ] Blank lines doğru yerleştirilmiş mi?
+- [ ] Code blocks language identifier var mı?
+
+### Content
+- [ ] Time estimates yok mu?
+- [ ] Mermaid diagrams valid syntax mi?
+- [ ] Links çalışıyor mu?
+
+---
+
+## 🔗 Referanslar
+
+- [CommonMark Specification](https://spec.commonmark.org/)
+- [BMad Documentation Standards](_bmad/bmm/data/documentation-standards.md)
+- [Mermaid Documentation](https://mermaid.js.org/)
+
+---
+
+**Son Güncelleme:** 2026-01-19  
+**Versiyon:** 1.0.0
